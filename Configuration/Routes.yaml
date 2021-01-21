@@ -7,3 +7,12 @@
     '@action': 'index'
   httpMethods: ['GET']
   appendExceedingArguments: true
+-
+  name: 'Render document'
+  uriPattern: 'content-api/render'
+  defaults:
+    '@package': 'Networkteam.Neos.ContentApi'
+    '@controller': 'Documents'
+    '@action': 'show'
+  httpMethods: ['GET']
+  appendExceedingArguments: true

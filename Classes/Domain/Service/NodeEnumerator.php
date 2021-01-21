@@ -45,22 +45,21 @@ class NodeEnumerator
      * Iterate over the site node in all available presets (if it exists)
      *
      * @param Site $site
-     * @return NodeInterface[]
+     * @param string $workspaceName
+     * @return \Generator
      */
-    public function siteNodeInContexts(Site $site)
+    public function siteNodeInContexts(Site $site, string $workspaceName = 'live')
     {
         $presets = $this->dimensionPresetSource->getAllPresets();
         if ($presets === []) {
             $contentContext = $this->contextFactory->create(array(
                     'currentSite' => $site,
-                    'workspaceName' => 'live',
+                    'workspaceName' => $workspaceName,
                     'dimensions' => [],
                     'targetDimensions' => []
                 ));
 
-            $siteNode = $contentContext->getNode('/sites/' . $site->getNodeName());
-
-            yield $siteNode;
+            yield $contentContext->getNode('/sites/' . $site->getNodeName());
         } else {
             foreach ($presets as $dimensionIdentifier => $presetsConfiguration) {
                 foreach ($presetsConfiguration['presets'] as $presetIdentifier => $presetConfiguration) {
@@ -68,7 +67,7 @@ class NodeEnumerator
 
                     $contentContext = $this->contextFactory->create(array(
                         'currentSite' => $site,
-                        'workspaceName' => 'live',
+                        'workspaceName' => $workspaceName,
                         'dimensions' => $dimensions,
                         'targetDimensions' => []
                     ));

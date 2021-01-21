@@ -11,7 +11,7 @@ use Neos\Neos\Domain\Service\FusionService;
 /**
  * @Flow\Scope("singleton")
  */
-class ContentPropertiesRenderer
+class SitePropertiesRenderer
 {
 
     /**
@@ -35,11 +35,11 @@ class ContentPropertiesRenderer
      * @throws \Neos\Fusion\Exception
      * @throws \Neos\Neos\Domain\Exception
      */
-    public function buildSiteContentProperties(Site $site, ControllerContext $controllerContext): array
+    public function renderSiteProperties(Site $site, ControllerContext $controllerContext, string $workspaceName = 'live'): array
     {
         /** @var ContentContext $contentContext */
         $contentContext = $this->contentContextFactory->create([
-            'workspaceName' => 'live',
+            'workspaceName' => $workspaceName,
             'currentSite' => $site
         ]);
         $siteNode = $contentContext->getCurrentSiteNode();
@@ -47,7 +47,7 @@ class ContentPropertiesRenderer
         $runtime->pushContextArray([
             'site' => $siteNode,
         ]);
-        $siteContentProperties = (array)$runtime->render('contentProperties');
+        $siteContentProperties = (array)$runtime->render('contentApi/site');
         $runtime->popContext();
 
         return $siteContentProperties;

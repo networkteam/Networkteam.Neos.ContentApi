@@ -1,4 +1,41 @@
-# Declare content properties for content API
-contentProperties = Neos.Fusion:RawArray {
-    error404Url = null
+# Content API
+contentApi {
+    # Path for rendering site properties (site will be in context)
+    site = Neos.Fusion:DataStructure {
+
+    }
+    # Path for rendering document properties (node, documentNode and site will be in context)
+    document = Neos.Fusion:Case {
+        documentType {
+            # Check if a prototype for a document node with .Api suffix is declared
+            condition = Neos.Fusion:CanRender {
+                type = ${q(documentNode).property('_nodeType.name') + '.Api'}
+            }
+            type = ${q(documentNode).property('_nodeType.name') + '.Api'}
+        }
+
+        default {
+            condition = true
+            renderer = Networkteam.Neos.ContentApi:DefaultDocument
+        }
+    }
+}
+
+prototype(Networkteam.Neos.ContentApi:DefaultDocument) < prototype(Neos.Fusion:DataStructure) {
+    meta = Neos.Fusion:DataStructure {
+        nodeType = ${q(node).property('_nodeType.name')}
+        title = ${q(node).property('title')}
+        uriPathSegment = ${q(node).property('uriPathSegment')}
+    }
+    content = Neos.Fusion:DataStructure {
+
+    }
+}
+
+# Example for adding an Api prototype for document node types
+
+prototype(Neos.Demo:Document.LandingPage.Api) < prototype(Networkteam.Neos.ContentApi:DefaultDocument) {
+    content.main = Neos.Neos:ContentCollection {
+        nodePath = 'main'
+    }
 }
