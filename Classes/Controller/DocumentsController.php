@@ -2,6 +2,7 @@
 namespace Networkteam\Neos\ContentApi\Controller;
 
 use Neos\ContentRepository\Domain\Model\NodeInterface;
+use Neos\ContentRepository\Domain\Utility\NodePaths;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Mvc\ActionRequest;
 use Neos\Flow\Mvc\ActionResponse;
@@ -77,26 +78,32 @@ class DocumentsController extends ActionController
                     }
                     $nodeAggregateIdentifier = $documentNode->getNodeAggregateIdentifier();
                     $dimensions = $documentNode->getContext()->getDimensions();
+                    $routePath = $this->uriBuilder->uriFor(
+                        'show',
+                        [
+                            'node' => $documentNode,
+                        ],
+                        'Frontend\Node',
+                        'Neos.Neos',
+                        );
                     $documents[] = [
                         'identifier' => (string)$nodeAggregateIdentifier,
                         'contextPath' => $documentNode->getContextPath(),
                         'dimensions' => $dimensions,
                         'site' => $siteNodeName,
-                        'routePath' => $this->uriBuilder->uriFor(
-                            'show',
-                            [
-                                'node' => $documentNode,
-                            ],
-                            'Frontend\Node',
-                            'Neos.Neos',
-                            ),
+                        // TODO How to make this extensible? In Fusion?
+                        'meta' => [
+                            'title' => $documentNode->getProperty('title')
+                        ],
+                        'routePath' => $routePath,
                         'renderUrl' => $this->uriBuilder->uriFor(
                             'show',
                             [
-                                'identifier' => (string)$nodeAggregateIdentifier,
-                                'site' => $siteNodeName,
-                                'dimensions' => $dimensions,
-                                'workspaceName' => $workspaceName,
+                                'path' => $routePath,
+                                // 'identifier' => (string)$nodeAggregateIdentifier,
+                                // 'site' => $siteNodeName,
+                                // 'dimensions' => $dimensions,
+                                // 'workspaceName' => $workspaceName,
                             ],
                             'Documents',
                             )
@@ -108,7 +115,7 @@ class DocumentsController extends ActionController
                 $site,
                 $this->controllerContext,
                 $workspaceName
-                );
+            );
         }
 
         $this->view->assign('value', [
@@ -118,30 +125,49 @@ class DocumentsController extends ActionController
     }
 
     /**
-     * @param string $identifier Node identifier
-     * @param string $site Site node name
-     * @param array $dimensions Dimensions for node context
-     * @param string $workspaceName Workspace name for node context
+     * @param string $path Node route path
+     * @param string $site Site node name (defaults to first site)
+     * @param string $workspaceName
      *
      * @throws Exception\NodeNotFoundException
      * @throws Exception\SiteNotFoundException
      * @throws \Neos\Flow\Mvc\Exception
-     * @throws \Exception
      */
-    public function showAction(string $identifier, string $site, array $dimensions, string $workspaceName = 'live')
+    public function showAction(string $path, string $site = null, string $workspaceName = 'live')
     {
-        $siteEntity = $this->siteRepository->findOneByNodeName($site);
-        if (!$siteEntity instanceof Site) {
-            throw new Exception\SiteNotFoundException(sprintf('Site with node name "%s" not found', $site), 1611245098);
+        if ($site !== null) {
+            $siteEntity = $this->siteRepository->findOneByNodeName($site);
+            if (!$siteEntity instanceof Site) {
+                throw new Exception\SiteNotFoundException(sprintf('Site with node name "%s" not found', $site),
+                    1611245098);
+            }
+        } else {
+            $siteEntity = $this->siteRepository->findFirstOnline();
         }
 
-        $contentContext = $this->contentContextFactory->create([
-            'workspaceName' => $workspaceName,
-            'currentSite' => $siteEntity
-        ]);
-        $documentNode = $contentContext->getNodeByIdentifier($identifier);
+        $path = ltrim($path, '/');
+
+        $routePart = new \Neos\Neos\Routing\FrontendNodeRoutePartHandler();
+        $routePart->setName('node');
+
+        $matchResult = $routePart->match($path);
+        if ($matchResult === false) {
+            throw new Exception\NodeNotFoundException('Node with path %s not found', 1611250322);
+        }
+
+        $nodeContextPath = $routePart->getValue();
+
+        $nodePathAndContext = NodePaths::explodeContextPath($nodeContextPath);
+        $nodePath = $nodePathAndContext['nodePath'];
+        $workspaceName = $nodePathAndContext['workspaceName'];
+        $dimensions = $nodePathAndContext['dimensions'];
+
+        $contentContext = $this->contentContextFactory->create($this->prepareContextProperties($workspaceName,
+            $dimensions));
+        $documentNode = $contentContext->getNode($nodePath);
         if (!$documentNode instanceof NodeInterface) {
-            throw new Exception\NodeNotFoundException(sprintf('Node with identifier "%s" not found', $identifier), 1611245114);
+            throw new Exception\NodeNotFoundException(sprintf('Node with path "%s" not found', $nodePath),
+                1611245114);
         }
 
         $viewOptions = [];
@@ -165,4 +191,25 @@ class DocumentsController extends ActionController
         }
     }
 
+    /**
+     * Prepares the context properties for the nodes based on the given workspace and dimensions
+     *
+     * @param string $workspaceName
+     * @param array $dimensions
+     * @return array
+     */
+    protected function prepareContextProperties($workspaceName, array $dimensions = null)
+    {
+        $contextProperties = [
+            'workspaceName' => $workspaceName,
+            'invisibleContentShown' => false,
+            'removedContentShown' => false
+        ];
+
+        if ($dimensions !== null) {
+            $contextProperties['dimensions'] = $dimensions;
+        }
+
+        return $contextProperties;
+    }
 }

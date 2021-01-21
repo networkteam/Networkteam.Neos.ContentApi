@@ -12,6 +12,12 @@ Neos:
         'Networkteam.Neos.ContentApi':
           position: 'before Neos.Neos'
 
+        'Neos.Neos':
+          variables:
+            # Do not use an URI suffix
+            'defaultUriSuffix': ''
+
+
   Neos:
     fusion:
       autoInclude:
