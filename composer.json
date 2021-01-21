@@ -1,0 +1,19 @@
+{
+    "description": "Content API for Neos",
+    "license": "MIT",
+    "type": "neos-package",
+    "name": "networkteam/neos-contentapi",
+    "require": {
+        "neos/neos": "^5.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Networkteam\\Neos\\ContentApi\\": "Classes/"
+        }
+    },
+    "extra": {
+        "neos": {
+            "package-key": "Networkteam.Neos.ContentApi"
+        }
+    }
+}

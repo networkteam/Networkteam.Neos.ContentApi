@@ -1,0 +1,18 @@
+Networkteam:
+  Neos:
+    ContentApi: {}
+
+
+
+Neos:
+
+  Flow:
+    mvc:
+      routes:
+        'Networkteam.Neos.ContentApi':
+          position: 'before Neos.Neos'
+
+  Neos:
+    fusion:
+      autoInclude:
+        'Networkteam.Neos.ContentApi': true

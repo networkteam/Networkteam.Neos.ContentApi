@@ -1,0 +1,15 @@
+privilegeTargets:
+
+  'Neos\Flow\Security\Authorization\Privilege\Method\MethodPrivilege':
+
+    'Networkteam.Neos.ContentApi:ReadApi':
+      matcher: >
+        method(Networkteam\Neos\ContentApi\Controller\DocumentsController->.*())
+
+roles:
+
+  'Neos.Flow:Everybody':
+    privileges:
+      -
+        privilegeTarget: 'Networkteam.Neos.ContentApi:ReadApi'
+        permission: GRANT

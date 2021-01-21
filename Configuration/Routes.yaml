@@ -1,0 +1,9 @@
+-
+  name: 'List documents'
+  uriPattern: 'content-api/documents'
+  defaults:
+    '@package': 'Networkteam.Neos.ContentApi'
+    '@controller': 'Documents'
+    '@action': 'index'
+  httpMethods: ['GET']
+  appendExceedingArguments: true

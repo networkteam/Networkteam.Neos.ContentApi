@@ -1,0 +1,4 @@
+# Declare content properties for content API
+contentProperties = Neos.Fusion:RawArray {
+    error404Url = null
+}
