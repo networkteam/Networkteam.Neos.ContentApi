@@ -5,7 +5,7 @@ deploy:
   stage: deploy
   image: curlimages/curl:7.74.0
   script:
-    - 'curl --header "Job-Token: $CI_JOB_TOKEN" --data tag=$CI_COMMIT_REF "https://gitlab.networkteam.com/api/v4/projects/$CI_PROJECT_ID/packages/composer"'
+    - 'curl -v --header "Job-Token: $CI_JOB_TOKEN" --data tag=$CI_COMMIT_REF "https://gitlab.networkteam.com/api/v4/projects/$CI_PROJECT_ID/packages/composer"'
   only:
     refs:
       - tags
