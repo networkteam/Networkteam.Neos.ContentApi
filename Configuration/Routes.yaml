@@ -16,3 +16,12 @@
     '@action': 'show'
   httpMethods: ['GET']
   appendExceedingArguments: true
+-
+  name: 'Render current site'
+  uriPattern: 'content-api/site'
+  defaults:
+    '@package': 'Networkteam.Neos.ContentApi'
+    '@controller': 'Sites'
+    '@action': 'current'
+  httpMethods: ['GET']
+  appendExceedingArguments: true

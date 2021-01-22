@@ -1,10 +1,11 @@
 <?php
-
 namespace Networkteam\Neos\ContentApi\Controller;
 
 use Neos\Error\Messages\Error;
+use Neos\Flow\Mvc\ActionRequest;
 use Neos\Flow\Mvc\ActionResponse;
 use Neos\Flow\Mvc\Controller\Arguments;
+use Neos\Fusion\Exception;
 
 trait ErrorHandlingTrait
 {
@@ -21,7 +22,7 @@ trait ErrorHandlingTrait
 
     protected function errorAction()
     {
-        $this->response->setHeader('Content-Type', 'application/json');
+        $this->response->setContentType('application/json');
 
         $this->response->setStatusCode(400);
         return json_encode([
@@ -38,13 +39,24 @@ trait ErrorHandlingTrait
 
     protected function respondWithErrors(\Throwable $throwable): void
     {
-        $this->response->setHeader('Content-Type', 'application/json');
+        $this->response->setContentType('application/json');
 
-        $this->response->setStatus(400);
+        $this->response->setStatusCode(400);
         $this->response->setContent(json_encode([
             'errors' => [
                 ['message' => $throwable->getMessage(), 'code' => $throwable->getCode()]
             ]
         ]));
+    }
+
+    public function processRequest(ActionRequest $request, ActionResponse $response)
+    {
+        try {
+            parent::processRequest($request, $response);
+        } catch (Exception\RuntimeException $e) {
+            $this->respondWithErrors($e->getPrevious());
+        } catch (\Exception $e) {
+            $this->respondWithErrors($e);
+        }
     }
 }

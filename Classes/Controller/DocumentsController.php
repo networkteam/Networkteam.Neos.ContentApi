@@ -3,17 +3,16 @@ namespace Networkteam\Neos\ContentApi\Controller;
 
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\ContentRepository\Domain\Utility\NodePaths;
+use Neos\ContentRepository\Exception\NodeException;
 use Neos\Flow\Annotations as Flow;
-use Neos\Flow\Mvc\ActionRequest;
-use Neos\Flow\Mvc\ActionResponse;
 use Neos\Flow\Mvc\Controller\ActionController;
-use Neos\Flow\Mvc\Exception\RequiredArgumentMissingException;
+use Neos\Flow\Mvc\Routing\Exception\MissingActionNameException;
 use Neos\Flow\Mvc\View\JsonView;
-use Neos\Neos\Domain\Model\Site;
+use Neos\Neos\Domain\Repository\DomainRepository;
 use Neos\Neos\Domain\Repository\SiteRepository;
 use Neos\Neos\Domain\Service\ContentContextFactory;
+use Neos\Neos\Routing\FrontendNodeRoutePartHandler;
 use Neos\Neos\View\FusionView;
-use Networkteam\Neos\ContentApi\Domain\Service\SitePropertiesRenderer;
 use Networkteam\Neos\ContentApi\Domain\Service\NodeEnumerator;
 use Networkteam\Neos\ContentApi\Exception;
 
@@ -21,6 +20,7 @@ class DocumentsController extends ActionController
 {
 
     use ErrorHandlingTrait;
+    use SiteHandlingTrait;
 
     /**
      * @var string
@@ -35,9 +35,15 @@ class DocumentsController extends ActionController
 
     /**
      * @Flow\Inject
-     * @var SitePropertiesRenderer
+     * @var ContentContextFactory
      */
-    protected $sitePropertiesRenderer;
+    protected $contentContextFactory;
+
+    /**
+     * @Flow\Inject
+     * @var DomainRepository
+     */
+    protected $domainRepository;
 
     /**
      * @Flow\Inject
@@ -46,111 +52,77 @@ class DocumentsController extends ActionController
     protected $siteRepository;
 
     /**
-     * @Flow\Inject
-     * @var ContentContextFactory
-     */
-    protected $contentContextFactory;
-
-    /**
-     * @param string $workspaceName Workspace name for node context
+     * List all document nodes
      *
+     * @param string $workspaceName Workspace name for node context (defaults to live)
+     *
+     * @throws NodeException
+     * @throws MissingActionNameException
      * @throws \Neos\Flow\Http\Exception
-     * @throws \Neos\Flow\Mvc\Routing\Exception\MissingActionNameException
-     * @throws \Neos\Flow\Security\Exception
-     * @throws \Neos\Fusion\Exception
      * @throws \Neos\Neos\Domain\Exception
      */
-    public function indexAction(string $workspaceName = 'live')
+    public function indexAction(string $workspaceName = 'live'): void
     {
-        // TODO Add site parameter for scoping requests per site
-
-        $documents = [];
-        $contentProperties = [
-            'siteProperties' => []
-        ];
-
         // TODO Check that public access is only granted to live workspace (or content api is completely restricted by API key)
 
-        foreach ($this->nodeEnumerator->sites() as $site) {
-            $siteNodeName = $site->getNodeName();
-            foreach ($this->nodeEnumerator->siteNodeInContexts($site, $workspaceName) as $siteNode) {
-                foreach ($this->nodeEnumerator->recurseDocumentChildNodes($siteNode) as $documentNode) {
-                    if ($documentNode->getNodeType()->isOfType('Neos.Neos:Shortcut')) {
-                        continue;
-                    }
-                    $nodeAggregateIdentifier = $documentNode->getNodeAggregateIdentifier();
-                    $dimensions = $documentNode->getContext()->getDimensions();
-                    $routePath = $this->uriBuilder->uriFor(
+        $documents = [];
+
+        $site = $this->getActiveSite();
+        $siteNodeName = $site->getNodeName();
+        foreach ($this->nodeEnumerator->siteNodeInContexts($site, $workspaceName) as $siteNode) {
+            foreach ($this->nodeEnumerator->recurseDocumentChildNodes($siteNode) as $documentNode) {
+                if ($documentNode->getNodeType()->isOfType('Neos.Neos:Shortcut')) {
+                    continue;
+                }
+                $nodeAggregateIdentifier = $documentNode->getNodeAggregateIdentifier();
+                $dimensions = $documentNode->getContext()->getDimensions();
+                $routePath = $this->uriBuilder->uriFor(
+                    'show',
+                    [
+                        'node' => $documentNode,
+                    ],
+                    'Frontend\Node',
+                    'Neos.Neos',
+                    );
+                $documents[] = [
+                    'identifier' => (string)$nodeAggregateIdentifier,
+                    'contextPath' => $documentNode->getContextPath(),
+                    'dimensions' => $dimensions,
+                    'site' => $siteNodeName,
+                    // TODO How to make this extensible? In Fusion?
+                    'meta' => [
+                        'title' => $documentNode->getProperty('title')
+                    ],
+                    'routePath' => $routePath,
+                    'renderUrl' => $this->uriBuilder->uriFor(
                         'show',
                         [
-                            'node' => $documentNode,
+                            'path' => $routePath,
                         ],
-                        'Frontend\Node',
-                        'Neos.Neos',
-                        );
-                    $documents[] = [
-                        'identifier' => (string)$nodeAggregateIdentifier,
-                        'contextPath' => $documentNode->getContextPath(),
-                        'dimensions' => $dimensions,
-                        'site' => $siteNodeName,
-                        // TODO How to make this extensible? In Fusion?
-                        'meta' => [
-                            'title' => $documentNode->getProperty('title')
-                        ],
-                        'routePath' => $routePath,
-                        'renderUrl' => $this->uriBuilder->uriFor(
-                            'show',
-                            [
-                                'path' => $routePath,
-                                // 'identifier' => (string)$nodeAggregateIdentifier,
-                                // 'site' => $siteNodeName,
-                                // 'dimensions' => $dimensions,
-                                // 'workspaceName' => $workspaceName,
-                            ],
-                            'Documents',
-                            )
-                    ];
-                }
+                        'Documents',
+                        )
+                ];
             }
-
-            // Add extra endpoint for site properties
-            $contentProperties['siteProperties'][$siteNodeName] = $this->sitePropertiesRenderer->renderSiteProperties(
-                $site,
-                $this->controllerContext,
-                $workspaceName
-            );
         }
 
         $this->view->assign('value', [
             'documents' => $documents,
-            'contentProperties' => $contentProperties
         ]);
     }
 
     /**
-     * @param string $path Node route path
-     * @param string $site Site node name (defaults to first site)
-     * @param string $workspaceName
+     * Render a document node for the content API
+     *
+     * @param string $path Node route path (e.g. "/en/features")
      *
      * @throws Exception\NodeNotFoundException
-     * @throws Exception\SiteNotFoundException
      * @throws \Neos\Flow\Mvc\Exception
      */
-    public function showAction(string $path, string $site = null, string $workspaceName = 'live')
+    public function showAction(string $path): void
     {
-        if ($site !== null) {
-            $siteEntity = $this->siteRepository->findOneByNodeName($site);
-            if (!$siteEntity instanceof Site) {
-                throw new Exception\SiteNotFoundException(sprintf('Site with node name "%s" not found', $site),
-                    1611245098);
-            }
-        } else {
-            $siteEntity = $this->siteRepository->findFirstOnline();
-        }
-
         $path = ltrim($path, '/');
 
-        $routePart = new \Neos\Neos\Routing\FrontendNodeRoutePartHandler();
+        $routePart = new FrontendNodeRoutePartHandler();
         $routePart->setName('node');
 
         $matchResult = $routePart->match($path);
@@ -185,15 +157,6 @@ class DocumentsController extends ActionController
         $this->view->assign('value', $result);
     }
 
-    public function processRequest(ActionRequest $request, ActionResponse $response)
-    {
-        try {
-            parent::processRequest($request, $response);
-        } catch (RequiredArgumentMissingException $e) {
-            $this->respondWithErrors($e);
-        }
-    }
-
     /**
      * Prepares the context properties for the nodes based on the given workspace and dimensions
      *
@@ -201,7 +164,7 @@ class DocumentsController extends ActionController
      * @param array $dimensions
      * @return array
      */
-    protected function prepareContextProperties($workspaceName, array $dimensions = null)
+    protected function prepareContextProperties($workspaceName, array $dimensions = null): array
     {
         $contextProperties = [
             'workspaceName' => $workspaceName,
@@ -215,4 +178,5 @@ class DocumentsController extends ActionController
 
         return $contextProperties;
     }
+
 }
