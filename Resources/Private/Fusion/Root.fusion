@@ -41,7 +41,12 @@ prototype(Neos.Demo:Document.Page.Api) < prototype(Networkteam.Neos.ContentApi:D
 }
 
 prototype(Neos.Demo:Document.LandingPage.Api) < prototype(Networkteam.Neos.ContentApi:DefaultDocument) {
-    content.main = Neos.Neos:ContentCollection {
-        nodePath = 'main'
+    content {
+        main = Neos.Neos:ContentCollection {
+            nodePath = 'main'
+        }
+        teaser = Neos.Neos:ContentCollection {
+            nodePath = 'teaser'
+        }
     }
 }

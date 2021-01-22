@@ -1,0 +1,10 @@
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  script:
+    - 'curl --header "Job-Token: $CI_JOB_TOKEN" --data tag=$CI_COMMIT_REF "https://gitlab.networkteam.com/api/v4/projects/$CI_PROJECT_ID/packages/composer"'
+  only:
+    refs:
+      - tags

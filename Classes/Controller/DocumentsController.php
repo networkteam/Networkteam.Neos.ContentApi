@@ -62,6 +62,8 @@ class DocumentsController extends ActionController
      */
     public function indexAction(string $workspaceName = 'live')
     {
+        // TODO Add site parameter for scoping requests per site
+
         $documents = [];
         $contentProperties = [
             'siteProperties' => []
@@ -111,6 +113,7 @@ class DocumentsController extends ActionController
                 }
             }
 
+            // Add extra endpoint for site properties
             $contentProperties['siteProperties'][$siteNodeName] = $this->sitePropertiesRenderer->renderSiteProperties(
                 $site,
                 $this->controllerContext,
