@@ -28,9 +28,7 @@ contentApi {
 
 prototype(Networkteam.Neos.ContentApi:DefaultDocument) < prototype(Neos.Fusion:DataStructure) {
   meta = Neos.Fusion:DataStructure
-
-  # Render node with children recursively
-    node = Networkteam.Neos.ContentApi:Node
+  node = Neos.Fusion:DataStructure
 }
 
 prototype(Networkteam.Neos.ContentApi:Node) < prototype(Neos.Fusion:DataStructure) {
