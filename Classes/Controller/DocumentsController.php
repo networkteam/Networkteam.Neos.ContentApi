@@ -1,11 +1,14 @@
 <?php
+
 namespace Networkteam\Neos\ContentApi\Controller;
 
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\ContentRepository\Domain\Utility\NodePaths;
 use Neos\ContentRepository\Exception\NodeException;
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Http\ServerRequestAttributes;
 use Neos\Flow\Mvc\Controller\ActionController;
+use Neos\Flow\Mvc\Routing\Dto\RouteParameters;
 use Neos\Flow\Mvc\Routing\Exception\MissingActionNameException;
 use Neos\Flow\Mvc\View\JsonView;
 use Neos\Neos\Domain\Repository\DomainRepository;
@@ -83,7 +86,7 @@ class DocumentsController extends ActionController
                     ],
                     'Frontend\Node',
                     'Neos.Neos',
-                    );
+                );
                 $documents[] = [
                     'identifier' => (string)$nodeAggregateIdentifier,
                     'contextPath' => $documentNode->getContextPath(),
@@ -100,7 +103,7 @@ class DocumentsController extends ActionController
                             'path' => $routePath,
                         ],
                         'Documents',
-                        )
+                    )
                 ];
             }
         }
@@ -125,12 +128,13 @@ class DocumentsController extends ActionController
         $routePart = new FrontendNodeRoutePartHandler();
         $routePart->setName('node');
 
-        $matchResult = $routePart->match($path);
+        $parameters = $this->request->getHttpRequest()->getAttribute(ServerRequestAttributes::ROUTING_PARAMETERS) ?? RouteParameters::createEmpty();
+        $matchResult = $routePart->matchWithParameters($path, $parameters);
         if ($matchResult === false) {
-            throw new Exception\NodeNotFoundException('Node with path %s not found', 1611250322);
+            throw new Exception\NodeNotFoundException(sprintf('Node with path %s not found', $path), 1611250322);
         }
 
-        $nodeContextPath = $routePart->getValue();
+        $nodeContextPath = $matchResult === true ? $routePart->getValue() : $matchResult->getMatchedValue();
 
         $nodePathAndContext = NodePaths::explodeContextPath($nodeContextPath);
         $nodePath = $nodePathAndContext['nodePath'];
@@ -149,6 +153,7 @@ class DocumentsController extends ActionController
         $fusionView = new FusionView($viewOptions);
         // TODO Add custom Response and intercept headers from result
         $fusionView->setControllerContext($this->controllerContext);
+        $fusionView->assign('site', $contentContext->getCurrentSiteNode());
         $fusionView->assign('value', $documentNode);
 
         $fusionView->setFusionPath('contentApi/document');

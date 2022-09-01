@@ -4,7 +4,7 @@
     "type": "neos-package",
     "name": "networkteam/neos-contentapi",
     "require": {
-        "neos/neos": "^5.3"
+        "neos/neos": "^7.3 || ^8.0"
     },
     "autoload": {
         "psr-4": {
