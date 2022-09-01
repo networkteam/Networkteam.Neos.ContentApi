@@ -1,36 +1,92 @@
 # Content API
 contentApi {
-    # Path for rendering site properties (site will be in context)
+  # Path for rendering site properties (site will be in context)
     site = Neos.Fusion:DataStructure {
-        meta = Neos.Fusion:DataStructure {
-            nodeType = ${site.nodeType.name}
-            nodeName = ${site.nodeName}
-            title = ${q(site).property('title')}
-        }
-        content = Neos.Fusion:DataStructure
+    meta = Neos.Fusion:DataStructure {
+      nodeType = ${site.nodeType.name}
+      nodeName = ${site.nodeName}
+      title = ${q(site).property('title')}
     }
-    # Path for rendering document properties (node, documentNode and site will be in context)
+    content = Neos.Fusion:DataStructure
+  }
+  # Path for rendering document properties (node, documentNode and site will be in context)
     document = Neos.Fusion:Case {
-        documentType {
-            # Check if a prototype for a document node with .Api suffix is declared
+    documentType {
+      # Check if a prototype for a document node with .Api suffix is declared
             condition = Neos.Fusion:CanRender {
-                type = ${documentNode.nodeType.name + '.Api'}
-            }
-            type = ${documentNode.nodeType.name + '.Api'}
-        }
-
-        default {
-            condition = true
-            renderer = Networkteam.Neos.ContentApi:DefaultDocument
-        }
+        type = ${documentNode.nodeType.name + '.Api'}
+      }
+      type = ${documentNode.nodeType.name + '.Api'}
     }
+
+    default {
+      condition = true
+      renderer = Networkteam.Neos.ContentApi:DefaultDocument
+    }
+  }
 }
 
 prototype(Networkteam.Neos.ContentApi:DefaultDocument) < prototype(Neos.Fusion:DataStructure) {
-    meta = Neos.Fusion:DataStructure {
-        nodeType = ${node.nodeType.name}
-        title = ${q(node).property('title')}
-        uriPathSegment = ${q(node).property('uriPathSegment')}
+  meta = Neos.Fusion:DataStructure
+
+  # Render node with children recursively
+    node = Networkteam.Neos.ContentApi:Node
+}
+
+prototype(Networkteam.Neos.ContentApi:Node) < prototype(Neos.Fusion:DataStructure) {
+  identifier = ${node.identifier}
+  nodeType = ${node.nodeType.name}
+  contextPath = ${node.contextPath}
+
+  properties = Neos.Fusion:Map {
+    items = ${node.properties}
+    itemName = 'propertyValue'
+    itemKey = 'propertyName'
+    itemRenderer = ${propertyValue}
+  }
+
+  @context._childNodes = ${q(node).children('[!instanceof Neos.Neos:Document]').get()}
+  children = Neos.Fusion:Map {
+    items = ${_childNodes}
+    itemName = 'node'
+    itemRenderer = Networkteam.Neos.ContentApi:Node
+
+    @if.hasChildren = ${_childNodes}
+  }
+}
+
+prototype(Networkteam.Neos.ContentApi:MenuItems) < prototype(Neos.Fusion:Component) {
+  renderer = Neos.Fusion:Map {
+    items = Neos.Neos:MenuItems {
+      @apply.props = ${props}
     }
-    content = Neos.Fusion:DataStructure
+    itemName = 'item'
+    itemRenderer = Networkteam.Neos.ContentApi:MenuItem
+  }
+}
+
+prototype(Networkteam.Neos.ContentApi:MenuItem) < prototype(Neos.Fusion:DataStructure) {
+  @context.node = ${item.node}
+  state = ${item.state}
+  label = ${item.label}
+  menuLevel = ${item.menuLevel}
+
+  node = Neos.Fusion:DataStructure {
+    identifier = ${node.identifier}
+    nodeType = ${node.nodeType.name}
+    contextPath = ${node.contextPath}
+
+    properties = Neos.Fusion:Map {
+      items = ${node.properties}
+      itemName = 'propertyValue'
+      itemKey = 'propertyName'
+      itemRenderer = ${propertyValue}
+    }
+  }
+
+  subItems = Neos.Fusion:Map {
+    items = ${item.subItems}
+    itemName = 'item'
+    itemRenderer = Networkteam.Neos.ContentApi:MenuItem
+  }
 }
