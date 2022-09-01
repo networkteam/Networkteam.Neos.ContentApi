@@ -43,7 +43,7 @@ class PropertiesImplementation extends AbstractFusionObject
     protected function convertPropertyValue(mixed $propertyValue): mixed
     {
         // TODO We might want to expose more metadata for assets
-        if ($propertyValue instanceof AssetInterface && $propertyValue instanceof ImageInterface) {
+        if ($propertyValue instanceof AssetInterface) {
             $thumbnailConfiguration = new ThumbnailConfiguration(
                 null,
                 $this->fusionValue('imageMaximumWidth'),
@@ -57,6 +57,15 @@ class PropertiesImplementation extends AbstractFusionObject
             $thumbnailData = $this->assetService->getThumbnailUriAndSizeForAsset($propertyValue, $thumbnailConfiguration, $request);
             return $thumbnailData;
         }
+
+        // TODO Check node type for type of property for array typed values!
+
+        if (is_array($propertyValue) && count($propertyValue) > 0 && $propertyValue[0] instanceof AssetInterface) {
+            return array_map(function ($value) {
+                return $this->convertPropertyValue($value);
+            }, $propertyValue);
+        }
+
         return $propertyValue;
     }
 
