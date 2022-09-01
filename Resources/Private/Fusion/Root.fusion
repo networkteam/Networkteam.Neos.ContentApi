@@ -44,6 +44,7 @@ prototype(Networkteam.Neos.ContentApi:BaseNode) < prototype(Neos.Fusion:DataStru
   identifier = ${node.identifier}
   nodeType = ${node.nodeType.name}
   contextPath = ${node.contextPath}
+  nodeName = ${node.name}
 
   properties = Networkteam.Neos.ContentApi:Properties
 }
