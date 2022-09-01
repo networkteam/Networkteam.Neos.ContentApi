@@ -26,28 +26,34 @@ contentApi {
   }
 }
 
+prototype(Networkteam.Neos.ContentApi:Properties) {
+  @class = 'Networkteam\\Neos\\ContentApi\\Fusion\\PropertiesImplementation'
+
+  // TODO Do we want to support a more complex type mapping to conversions via Fusion?
+  // Image properties are automatically converted to a URI with a base size
+  imageMaximumWidth = 2560
+  imageMaximumHeight = 2560
+}
+
 prototype(Networkteam.Neos.ContentApi:DefaultDocument) < prototype(Neos.Fusion:DataStructure) {
   meta = Neos.Fusion:DataStructure
   node = Neos.Fusion:DataStructure
 }
 
-prototype(Networkteam.Neos.ContentApi:Node) < prototype(Neos.Fusion:DataStructure) {
+prototype(Networkteam.Neos.ContentApi:BaseNode) < prototype(Neos.Fusion:DataStructure) {
   identifier = ${node.identifier}
   nodeType = ${node.nodeType.name}
   contextPath = ${node.contextPath}
 
-  properties = Neos.Fusion:Map {
-    items = ${node.properties}
-    itemName = 'propertyValue'
-    itemKey = 'propertyName'
-    itemRenderer = ${propertyValue}
-  }
+  properties = Networkteam.Neos.ContentApi:Properties
+}
 
+prototype(Networkteam.Neos.ContentApi:RecursiveNode) < prototype(Networkteam.Neos.ContentApi:BaseNode) {
   @context._childNodes = ${q(node).children('[!instanceof Neos.Neos:Document]').get()}
   children = Neos.Fusion:Map {
     items = ${_childNodes}
     itemName = 'node'
-    itemRenderer = Networkteam.Neos.ContentApi:Node
+    itemRenderer = Networkteam.Neos.ContentApi:RecursiveNode
 
     @if.hasChildren = ${_childNodes}
   }
@@ -74,12 +80,7 @@ prototype(Networkteam.Neos.ContentApi:MenuItem) < prototype(Neos.Fusion:DataStru
     nodeType = ${node.nodeType.name}
     contextPath = ${node.contextPath}
 
-    properties = Neos.Fusion:Map {
-      items = ${node.properties}
-      itemName = 'propertyValue'
-      itemKey = 'propertyName'
-      itemRenderer = ${propertyValue}
-    }
+    properties = Networkteam.Neos.ContentApi:Properties
   }
 
   subItems = Neos.Fusion:Map {
