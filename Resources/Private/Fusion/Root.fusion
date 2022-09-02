@@ -102,7 +102,9 @@ prototype(Networkteam.Neos.ContentApi:MenuItem) < prototype(Neos.Fusion:DataStru
     identifier = ${node.identifier}
     nodeType = ${node.nodeType.name}
     contextPath = ${node.contextPath}
-
+    routePath = Neos.Neos:NodeUri {
+      node = ${node}
+    }
     properties = Networkteam.Neos.ContentApi:Properties
   }
 

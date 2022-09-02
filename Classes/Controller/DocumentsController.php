@@ -16,6 +16,7 @@ use Neos\Neos\Domain\Repository\DomainRepository;
 use Neos\Neos\Domain\Repository\SiteRepository;
 use Neos\Neos\Domain\Service\ContentContextFactory;
 use Neos\Neos\Domain\Service\UserService;
+use Neos\Neos\Domain\Service\ContentDimensionPresetSourceInterface;
 use Neos\Neos\Routing\FrontendNodeRoutePartHandler;
 use Neos\Neos\View\FusionView;
 use Networkteam\Neos\ContentApi\Domain\Service\NodeEnumerator;
@@ -49,6 +50,12 @@ class DocumentsController extends ActionController
      * @var DomainRepository
      */
     protected $domainRepository;
+
+    /**
+     * @var ContentDimensionPresetSourceInterface
+     * @Flow\Inject
+     */
+    protected $contentDimensionPresetSource;
 
     /**
      * @Flow\Inject
@@ -92,6 +99,7 @@ class DocumentsController extends ActionController
                     continue;
                 }
                 $nodeAggregateIdentifier = $documentNode->getNodeAggregateIdentifier();
+                $availableDimensions = $this->contentDimensionPresetSource->getAllPresets();
                 $dimensions = $documentNode->getContext()->getDimensions();
                 $routePath = $this->uriBuilder->uriFor(
                     'show',
@@ -124,6 +132,7 @@ class DocumentsController extends ActionController
 
         $this->view->assign('value', [
             'documents' => $documents,
+            'dimensions' => $availableDimensions,
         ]);
     }
 
@@ -185,11 +194,8 @@ class DocumentsController extends ActionController
         $fusionView->setControllerContext($this->controllerContext);
         $fusionView->assign('site', $contentContext->getCurrentSiteNode());
         $fusionView->assign('value', $documentNode);
-        $fusionView->assign('controllerContext', $this->controllerContext);
-
         $fusionView->setFusionPath('contentApi/document');
         $result = $fusionView->render();
-
         $this->view->assign('value', $result);
     }
 
