@@ -45,6 +45,22 @@ prototype(Networkteam.Neos.ContentApi:BaseNode) < prototype(Neos.Fusion:DataStru
   nodeType = ${node.nodeType.name}
   contextPath = ${node.contextPath}
   nodeName = ${node.name}
+  label = ${node.label}
+  depth = ${node.depth}
+  removed = ${node.removed}
+  creationDateTime = ${node.creationDateTime}
+  lastModificationDateTime = ${node.lastModificationDateTime}
+  lastPublicationDateTime = ${node.lastPublicationDateTime}
+  path = ${node.path}
+  hidden = ${node.hidden}
+  hiddenBeforeDateTime = ${node.hiddenBeforeDateTime}
+  hiddenAfterDateTime = ${node.hiddenAfterDateTime}
+  parent = ${node.parent.contextPath}
+
+  // null, should all be true
+  isAutoCreated = ${node.isAutoCreated}
+  isFullyLoaded = ${node.isFullyLoaded}
+  matchesCurrentDimensions = ${node.matchesCurrentDimensions}
 
   properties = Networkteam.Neos.ContentApi:Properties
 }
