@@ -11,9 +11,11 @@ use Neos\Flow\Mvc\Controller\ActionController;
 use Neos\Flow\Mvc\Routing\Dto\RouteParameters;
 use Neos\Flow\Mvc\Routing\Exception\MissingActionNameException;
 use Neos\Flow\Mvc\View\JsonView;
+use Neos\Flow\Security\Context;
 use Neos\Neos\Domain\Repository\DomainRepository;
 use Neos\Neos\Domain\Repository\SiteRepository;
 use Neos\Neos\Domain\Service\ContentContextFactory;
+use Neos\Neos\Domain\Service\UserService;
 use Neos\Neos\Routing\FrontendNodeRoutePartHandler;
 use Neos\Neos\View\FusionView;
 use Networkteam\Neos\ContentApi\Domain\Service\NodeEnumerator;
@@ -53,6 +55,18 @@ class DocumentsController extends ActionController
      * @var SiteRepository
      */
     protected $siteRepository;
+
+    /**
+     * @Flow\Inject
+     * @var UserService
+     */
+    protected $userService;
+
+    /**
+     * @Flow\Inject
+     * @var Context
+     */
+    protected $securityContext;
 
     /**
      * List all document nodes
@@ -116,25 +130,41 @@ class DocumentsController extends ActionController
     /**
      * Render a document node for the content API
      *
-     * @param string $path Node route path (e.g. "/en/features")
+     * Either provide a path (public frontend) or context path (preview / editing) to fetch the node.
+     *
+     * @param string|null $path Node route path (e.g. "/en/features")
+     * @param string|null $contextPath Node context path (e.g. "/sites/neosdemo@user-admin;language=en_US")
      *
      * @throws Exception\NodeNotFoundException
      * @throws \Neos\Flow\Mvc\Exception
      */
-    public function showAction(string $path): void
+    public function showAction(?string $path = null, ?string $contextPath = null): void
     {
-        $path = ltrim($path, '/');
-
-        $routePart = new FrontendNodeRoutePartHandler();
-        $routePart->setName('node');
-
-        $parameters = $this->request->getHttpRequest()->getAttribute(ServerRequestAttributes::ROUTING_PARAMETERS) ?? RouteParameters::createEmpty();
-        $matchResult = $routePart->matchWithParameters($path, $parameters);
-        if ($matchResult === false) {
-            throw new Exception\NodeNotFoundException(sprintf('Node with path %s not found', $path), 1611250322);
+        $account = $this->securityContext->getAccount();
+        if ($account !== null) {
+            error_log('has account authenticated');
+        } else {
+            error_log('no account authenticated');
         }
 
-        $nodeContextPath = $matchResult === true ? $routePart->getValue() : $matchResult->getMatchedValue();
+        if ($path !== null) {
+            $path = ltrim($path, '/');
+
+            $routePart = new FrontendNodeRoutePartHandler();
+            $routePart->setName('node');
+
+            $parameters = $this->request->getHttpRequest()->getAttribute(ServerRequestAttributes::ROUTING_PARAMETERS) ?? RouteParameters::createEmpty();
+            $matchResult = $routePart->matchWithParameters($path, $parameters);
+            if ($matchResult === false) {
+                throw new Exception\NodeNotFoundException(sprintf('Node with path %s not found', $path), 1611250322);
+            }
+
+            $nodeContextPath = $matchResult === true ? $routePart->getValue() : $matchResult->getMatchedValue();
+        } elseif ($contextPath !== null) {
+            $nodeContextPath = $contextPath;
+        } else {
+            throw new Exception\NodeNotFoundException('No path or context path provided', 1662111662);
+        }
 
         $nodePathAndContext = NodePaths::explodeContextPath($nodeContextPath);
         $nodePath = $nodePathAndContext['nodePath'];
@@ -173,6 +203,7 @@ class DocumentsController extends ActionController
     {
         $contextProperties = [
             'workspaceName' => $workspaceName,
+            // TODO We might need that for previewing
             'invisibleContentShown' => false,
             'removedContentShown' => false
         ];

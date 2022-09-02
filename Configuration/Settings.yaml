@@ -17,6 +17,15 @@ Neos:
             # Do not use an URI suffix
             'defaultUriSuffix': ''
 
+    security:
+      authentication:
+        providers:
+          'Neos.Neos:Backend':
+            requestPatterns:
+              'Networkteam.Neos.ContentApi:Controllers':
+                pattern: 'ControllerObjectName'
+                patternOptions:
+                  controllerObjectNamePattern: 'Networkteam\Neos\ContentApi\Controller\.*'
 
   Neos:
     fusion:

@@ -1,6 +1,6 @@
 -
   name: 'List documents'
-  uriPattern: 'content-api/documents'
+  uriPattern: 'neos/content-api/documents'
   defaults:
     '@package': 'Networkteam.Neos.ContentApi'
     '@controller': 'Documents'
@@ -9,7 +9,7 @@
   appendExceedingArguments: true
 -
   name: 'Render document'
-  uriPattern: 'content-api/render'
+  uriPattern: 'neos/content-api/render'
   defaults:
     '@package': 'Networkteam.Neos.ContentApi'
     '@controller': 'Documents'
@@ -18,7 +18,7 @@
   appendExceedingArguments: true
 -
   name: 'Render current site'
-  uriPattern: 'content-api/site'
+  uriPattern: 'neos/content-api/site'
   defaults:
     '@package': 'Networkteam.Neos.ContentApi'
     '@controller': 'Sites'
