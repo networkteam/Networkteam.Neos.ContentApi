@@ -185,6 +185,7 @@ class DocumentsController extends ActionController
         $fusionView->setControllerContext($this->controllerContext);
         $fusionView->assign('site', $contentContext->getCurrentSiteNode());
         $fusionView->assign('value', $documentNode);
+        $fusionView->assign('controllerContext', $this->controllerContext);
 
         $fusionView->setFusionPath('contentApi/document');
         $result = $fusionView->render();

@@ -2,8 +2,6 @@ Networkteam:
   Neos:
     ContentApi: {}
 
-
-
 Neos:
 
   Flow:
@@ -31,3 +29,7 @@ Neos:
     fusion:
       autoInclude:
         'Networkteam.Neos.ContentApi': true
+
+  Fusion:
+    defaultContext:
+      Neos.Ui.NodeInfo: Neos\Neos\Ui\Fusion\Helper\NodeInfoHelper

@@ -37,7 +37,22 @@ prototype(Networkteam.Neos.ContentApi:Properties) {
 
 prototype(Networkteam.Neos.ContentApi:DefaultDocument) < prototype(Neos.Fusion:DataStructure) {
   meta = Neos.Fusion:DataStructure
+  site = Neos.Fusion:DataStructure
   node = Neos.Fusion:DataStructure
+
+  backend = Neos.Fusion:DataStructure {
+    documentInformation = Neos.Neos.Ui:RenderConfiguration {
+      path = 'documentNodeInformation'
+      context {
+        documentNode = ${documentNode}
+        site = ${site}
+      }
+    }
+
+    @if {
+      inBackend = ${documentNode.context.inBackend}
+    }
+  }
 }
 
 prototype(Networkteam.Neos.ContentApi:BaseNode) < prototype(Neos.Fusion:DataStructure) {
@@ -45,24 +60,15 @@ prototype(Networkteam.Neos.ContentApi:BaseNode) < prototype(Neos.Fusion:DataStru
   nodeType = ${node.nodeType.name}
   contextPath = ${node.contextPath}
   nodeName = ${node.name}
-  label = ${node.label}
-  depth = ${node.depth}
-  removed = ${node.removed}
-  creationDateTime = ${node.creationDateTime}
-  lastModificationDateTime = ${node.lastModificationDateTime}
-  lastPublicationDateTime = ${node.lastPublicationDateTime}
-  path = ${node.path}
-  hidden = ${node.hidden}
-  hiddenBeforeDateTime = ${node.hiddenBeforeDateTime}
-  hiddenAfterDateTime = ${node.hiddenAfterDateTime}
-  parent = ${node.parent.contextPath}
-
-  // null, should all be true
-  isAutoCreated = ${node.isAutoCreated}
-  isFullyLoaded = ${node.isFullyLoaded}
-  matchesCurrentDimensions = ${node.matchesCurrentDimensions}
 
   properties = Networkteam.Neos.ContentApi:Properties
+
+  backend = Neos.Fusion:DataStructure {
+    serializedNode = ${Neos.Ui.NodeInfo.renderNodeWithPropertiesAndChildrenInformation(node, controllerContext)}
+    @if {
+      inBackend = ${documentNode.context.inBackend}
+    }
+  }
 }
 
 prototype(Networkteam.Neos.ContentApi:RecursiveNode) < prototype(Networkteam.Neos.ContentApi:BaseNode) {
