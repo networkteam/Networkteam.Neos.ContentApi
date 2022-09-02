@@ -2,6 +2,7 @@
 
 namespace Networkteam\Neos\ContentApi\Domain\Service;
 
+use Neos\Flow\Annotations as Flow;
 use Neos\ContentRepository\Domain\Utility\NodePaths;
 use Neos\Eel\FlowQuery\FlowQuery;
 use GuzzleHttp\Client;
