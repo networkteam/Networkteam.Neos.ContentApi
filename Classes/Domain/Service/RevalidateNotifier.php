@@ -2,22 +2,13 @@
 
 namespace Networkteam\Neos\ContentApi\Domain\Service;
 
-use GuzzleHttp\Psr7\ServerRequest;
-use http\Env\Request;
 use Neos\ContentRepository\Domain\Utility\NodePaths;
 use Neos\Eel\FlowQuery\FlowQuery;
-use Neos\Flow\Annotations as Flow;
 use GuzzleHttp\Client;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\ContentRepository\Domain\Model\Workspace;
-use Neos\Flow\Mvc\ActionRequestFactory;
-use Neos\Flow\Mvc\Controller\ControllerContext;
 use Neos\Flow\Mvc\Routing\Dto\ResolveResult;
 use Neos\Flow\Mvc\Routing\Dto\RouteParameters;
-use Neos\Fusion\Core\Cache\ContentCache;
-use Neos\Neos\Domain\Model\Site;
-use Neos\Neos\Domain\Service\ContentContext;
-use Neos\Neos\Domain\Service\FusionService;
 use Neos\Neos\Routing\FrontendNodeRoutePartHandler;
 use Neos\Neos\Service\LinkingService;
 use Psr\Log\LoggerInterface;
