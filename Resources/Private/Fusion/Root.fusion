@@ -1,7 +1,7 @@
 # Content API
 contentApi {
   # Path for rendering site properties (site will be in context)
-    site = Neos.Fusion:DataStructure {
+  site = Neos.Fusion:DataStructure {
     meta = Neos.Fusion:DataStructure {
       nodeType = ${site.nodeType.name}
       nodeName = ${site.nodeName}
@@ -10,10 +10,10 @@ contentApi {
     content = Neos.Fusion:DataStructure
   }
   # Path for rendering document properties (node, documentNode and site will be in context)
-    document = Neos.Fusion:Case {
+  document = Neos.Fusion:Case {
     documentType {
       # Check if a prototype for a document node with .Api suffix is declared
-            condition = Neos.Fusion:CanRender {
+      condition = Neos.Fusion:CanRender {
         type = ${documentNode.nodeType.name + '.Api'}
       }
       type = ${documentNode.nodeType.name + '.Api'}
@@ -112,5 +112,28 @@ prototype(Networkteam.Neos.ContentApi:MenuItem) < prototype(Neos.Fusion:DataStru
     items = ${item.subItems}
     itemName = 'item'
     itemRenderer = Networkteam.Neos.ContentApi:MenuItem
+  }
+}
+
+prototype(Networkteam.Neos.ContentApi:DimensionItems) < prototype(Neos.Fusion:Component) {
+  renderer = Neos.Fusion:Map {
+    items = Neos.Neos:DimensionsMenuItems {
+      @apply.props = ${props}
+    }
+    itemName = 'item'
+    itemRenderer = Networkteam.Neos.ContentApi:DimensionItem
+  }
+}
+
+prototype(Networkteam.Neos.ContentApi:DimensionItem) < prototype(Neos.Fusion:DataStructure) {
+  @context.node = ${item.node}
+
+  state = ${item.state}
+  label = ${item.label}
+  targetDimensions = ${item.targetDimensions}
+
+  uri = Neos.Neos:NodeUri {
+    node = ${node}
+    @if.hasNode = ${node}
   }
 }
