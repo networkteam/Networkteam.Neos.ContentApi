@@ -9,6 +9,7 @@ contentApi {
     }
     content = Neos.Fusion:DataStructure
   }
+
   # Path for rendering document properties (node, documentNode and site will be in context)
   document = Neos.Fusion:Case {
     documentType {
@@ -23,6 +24,12 @@ contentApi {
       condition = true
       renderer = Networkteam.Neos.ContentApi:DefaultDocument
     }
+  }
+
+  # Path for rendering properties of single node
+  node = Neos.Fusion:DataStructure {
+    site = Neos.Fusion:DataStructure
+    node = Networkteam.Neos.ContentApi:RecursiveNode
   }
 }
 
@@ -41,6 +48,7 @@ prototype(Networkteam.Neos.ContentApi:DefaultDocument) < prototype(Neos.Fusion:D
   node = Neos.Fusion:DataStructure
 
   backend = Neos.Fusion:DataStructure {
+    // TODO Replace previewUrl to point to the Next.js site
     documentInformation = Neos.Neos.Ui:RenderConfiguration {
       path = 'documentNodeInformation'
       context {

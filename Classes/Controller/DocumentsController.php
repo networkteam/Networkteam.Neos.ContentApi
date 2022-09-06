@@ -64,18 +64,6 @@ class DocumentsController extends ActionController
     protected $siteRepository;
 
     /**
-     * @Flow\Inject
-     * @var UserService
-     */
-    protected $userService;
-
-    /**
-     * @Flow\Inject
-     * @var Context
-     */
-    protected $securityContext;
-
-    /**
      * List all document nodes
      *
      * @param string $workspaceName Workspace name for node context (defaults to live)
@@ -114,18 +102,7 @@ class DocumentsController extends ActionController
                     'contextPath' => $documentNode->getContextPath(),
                     'dimensions' => $dimensions,
                     'site' => $siteNodeName,
-                    // TODO How to make this extensible? In Fusion?
-                    'meta' => [
-                        'title' => $documentNode->getProperty('title')
-                    ],
-                    'routePath' => $routePath,
-                    'renderUrl' => $this->uriBuilder->uriFor(
-                        'show',
-                        [
-                            'path' => $routePath,
-                        ],
-                        'Documents',
-                    )
+                    'routePath' => $routePath
                 ];
             }
         }
@@ -137,7 +114,7 @@ class DocumentsController extends ActionController
     }
 
     /**
-     * Render a document node for the content API
+     * Render properties of a document node for the content API
      *
      * Either provide a path (public frontend) or context path (preview / editing) to fetch the node.
      *
@@ -147,15 +124,8 @@ class DocumentsController extends ActionController
      * @throws Exception\NodeNotFoundException
      * @throws \Neos\Flow\Mvc\Exception
      */
-    public function showAction(?string $path = null, ?string $contextPath = null): void
+    public function documentAction(?string $path = null, ?string $contextPath = null): void
     {
-        $account = $this->securityContext->getAccount();
-        if ($account !== null) {
-            error_log('has account authenticated');
-        } else {
-            error_log('no account authenticated');
-        }
-
         if ($path !== null) {
             $path = ltrim($path, '/');
 
@@ -195,6 +165,40 @@ class DocumentsController extends ActionController
         $fusionView->assign('site', $contentContext->getCurrentSiteNode());
         $fusionView->assign('value', $documentNode);
         $fusionView->setFusionPath('contentApi/document');
+        $result = $fusionView->render();
+        $this->view->assign('value', $result);
+    }
+
+    /**
+     * Render properties of a single node for the content API
+     *
+     * @param string $contextPath Node context path (e.g. "/sites/neosdemo@user-admin;language=en_US")
+     *
+     * @throws Exception\NodeNotFoundException
+     * @throws \Neos\Flow\Mvc\Exception
+     */
+    public function nodeAction(string $contextPath): void
+    {
+        $nodePathAndContext = NodePaths::explodeContextPath($contextPath);
+        $nodePath = $nodePathAndContext['nodePath'];
+        $workspaceName = $nodePathAndContext['workspaceName'];
+        $dimensions = $nodePathAndContext['dimensions'];
+
+        $contentContext = $this->contentContextFactory->create($this->prepareContextProperties($workspaceName,
+            $dimensions));
+        $node = $contentContext->getNode($nodePath);
+        if (!$node instanceof NodeInterface) {
+            throw new Exception\NodeNotFoundException(sprintf('Node with path "%s" not found', $nodePath),
+                1611245114);
+        }
+
+        $viewOptions = [];
+        $fusionView = new FusionView($viewOptions);
+        // TODO Add custom Response and intercept headers from result
+        $fusionView->setControllerContext($this->controllerContext);
+        $fusionView->assign('site', $contentContext->getCurrentSiteNode());
+        $fusionView->assign('value', $node);
+        $fusionView->setFusionPath('contentApi/node');
         $result = $fusionView->render();
         $this->view->assign('value', $result);
     }

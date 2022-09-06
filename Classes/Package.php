@@ -14,6 +14,8 @@ class Package extends BasePackage
     {
         $dispatcher = $bootstrap->getSignalSlotDispatcher();
 
+        // TODO Move all notification code to Networkteam.Neos.Next package
+
         // TODO Revalidate all if site was changed
         // $dispatcher->connect(Site::class, 'siteChanged', $flushConfigurationCache);
 

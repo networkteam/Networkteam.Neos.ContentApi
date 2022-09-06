@@ -9,11 +9,20 @@
   appendExceedingArguments: true
 -
   name: 'Render document'
-  uriPattern: 'neos/content-api/render'
+  uriPattern: 'neos/content-api/document'
   defaults:
     '@package': 'Networkteam.Neos.ContentApi'
     '@controller': 'Documents'
-    '@action': 'show'
+    '@action': 'document'
+  httpMethods: ['GET']
+  appendExceedingArguments: true
+-
+  name: 'Render node'
+  uriPattern: 'neos/content-api/node'
+  defaults:
+    '@package': 'Networkteam.Neos.ContentApi'
+    '@controller': 'Documents'
+    '@action': 'node'
   httpMethods: ['GET']
   appendExceedingArguments: true
 -

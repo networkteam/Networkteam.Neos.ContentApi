@@ -64,8 +64,12 @@ This can be fetched via the `/content-api/site` endpoint for the current site (d
 
 ### `/content-api/documents`
 
-### `/content-api/render`
+### `/content-api/document`
 
-Render a document given by `path`.
+Render a document given by `path` or `contextPath`.
+
+### `/content-api/node`
+
+Render a single node given by `contextPath`.
 
 ### `/content-api/site`
