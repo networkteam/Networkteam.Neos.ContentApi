@@ -27,13 +27,11 @@ class RevalidateNotifier
 
     /**
      * @var string
-     * TODO Inject configuration
      */
     protected $revalidateUrl = 'http://localhost:3000/api/revalidate';
 
     /**
      * @var string
-     * TODO Inject configuration
      */
     protected $token = 'a-secret-token';
 
@@ -54,6 +52,23 @@ class RevalidateNotifier
      * @var LoggerInterface
      */
     protected $systemLogger;
+
+    /**
+     * @var array
+     */
+    protected $settings = [];
+
+    /**
+     * @param array $settings
+     * @return void
+     */
+    public function injectSettings(array $settings)
+    {
+        $this->settings = $settings;
+
+        $this->revalidateUrl = $settings['revalidateUrl'];
+        $this->token = $settings['revalidateToken'];
+    }
 
     public function __construct()
     {

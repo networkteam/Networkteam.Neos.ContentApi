@@ -29,6 +29,11 @@ class PropertiesImplementation extends AbstractFusionObject
     protected $linkingService;
 
     /**
+     * @var array
+     */
+    protected $settings = [];
+
+    /**
      * @param array $settings
      * @return void
      */
