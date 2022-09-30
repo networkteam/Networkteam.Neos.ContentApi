@@ -7,10 +7,12 @@ use Neos\Fusion\Exception as FusionException;
 use Neos\Fusion\FusionObjects\AbstractFusionObject;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\Neos\Service\LinkingService;
-use Neos\Media\Domain\Model\AssetInterface;
-use Neos\Media\Domain\Model\ImageInterface;
+use Neos\Media\Domain\Model\Asset;
+use Neos\Media\Domain\Model\Image;
+use Neos\Media\Domain\Model\ImageVariant;
 use Neos\Media\Domain\Model\ThumbnailConfiguration;
 use Neos\Media\Domain\Service\AssetService;
+use Neos\Flow\ResourceManagement\ResourceManager;
 
 class PropertiesImplementation extends AbstractFusionObject
 {
@@ -21,6 +23,12 @@ class PropertiesImplementation extends AbstractFusionObject
      * @var AssetService
      */
     protected $assetService;
+
+    /**
+     * @Flow\Inject
+     * @var ResourceManager
+     */
+    protected $resourceManager;
 
     /**
      * @Flow\Inject
@@ -70,28 +78,35 @@ class PropertiesImplementation extends AbstractFusionObject
     protected function convertPropertyValue(mixed $propertyValue, Int $depth): mixed
     {
         // Extract asset URI and metadata
-        // TODO We might want to expose more metadata for assets
-        if ($propertyValue instanceof AssetInterface) {
-            $thumbnailConfiguration = new ThumbnailConfiguration(
-                null,
-                $this->fusionValue('imageMaximumWidth'),
-                null,
-                $this->fusionValue('imageMaximumHeight'),
-                false,
-                false,
-            );
+        if ($propertyValue instanceof Asset) {
+            $assetData = [];
 
-            $request = $this->getRuntime()->getControllerContext()->getRequest();
-            $thumbnailData = $this->assetService->getThumbnailUriAndSizeForAsset($propertyValue, $thumbnailConfiguration, $request);
+            if ($propertyValue instanceof Image || $propertyValue instanceof ImageVariant) {
+                $thumbnailConfiguration = new ThumbnailConfiguration(
+                    null,
+                    $this->fusionValue('imageMaximumWidth'),
+                    null,
+                    $this->fusionValue('imageMaximumHeight'),
+                    false,
+                    false,
+                );
 
-            return [
-                'width' => $thumbnailData['width'],
-                'height' => $thumbnailData['height'],
-                'src' => $thumbnailData['src'],
-                'title' => $propertyValue->getTitle(),
-                'caption' => $propertyValue->getCaption(),
-                'copyrightNotice' => $propertyValue->getCopyrightNotice(),
-            ];
+                $request = $this->getRuntime()->getControllerContext()->getRequest();
+                $thumbnailData = $this->assetService->getThumbnailUriAndSizeForAsset($propertyValue, $thumbnailConfiguration, $request);
+
+                $assetData['width'] = $thumbnailData['width'];
+                $assetData['height'] = $thumbnailData['height'];
+                $assetData['src'] = $thumbnailData['src'];
+            } else {
+                $resource = $propertyValue->getResource();
+                $assetData['src'] = $this->resourceManager->getPublicPersistentResourceUri($resource);
+            }
+
+            $assetData['title'] = $propertyValue->getTitle();
+            $assetData['caption'] = $propertyValue->getCaption();
+            $assetData['copyrightNotice'] = $propertyValue->getCopyrightNotice();
+
+            return $assetData;
         }
 
         // Recursively map properties inside of arrays
