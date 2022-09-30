@@ -1,6 +1,7 @@
 Networkteam:
   Neos:
-    ContentApi: {}
+    ContentApi:
+      recursiveReferencePropertyDepth: 1
 
 Neos:
 
