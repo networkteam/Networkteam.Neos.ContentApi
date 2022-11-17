@@ -154,7 +154,7 @@ class DocumentsController extends ActionController
             $dimensions));
         $documentNode = $contentContext->getNode($nodePath);
         if (!$documentNode instanceof NodeInterface) {
-            throw new Exception\NodeNotFoundException(sprintf('Node with path "%s" not found', $nodePath),
+            throw new Exception\NodeNotFoundException(sprintf('Node with node path "%s" not found', $nodePath),
                 1611245114);
         }
 
@@ -210,12 +210,12 @@ class DocumentsController extends ActionController
      * @param array $dimensions
      * @return array
      */
-    protected function prepareContextProperties($workspaceName, array $dimensions = null): array
+    protected function prepareContextProperties(string $workspaceName, array $dimensions = null): array
     {
         $contextProperties = [
             'workspaceName' => $workspaceName,
-            // TODO We might need that for previewing
-            'invisibleContentShown' => false,
+            'invisibleContentShown' => $workspaceName !== 'live',
+            'inaccessibleContentShown' => $workspaceName !== 'live',
             'removedContentShown' => false
         ];
 

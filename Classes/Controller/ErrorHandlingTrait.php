@@ -2,6 +2,7 @@
 namespace Networkteam\Neos\ContentApi\Controller;
 
 use Neos\Error\Messages\Error;
+use Neos\Flow\Error\WithHttpStatusInterface;
 use Neos\Flow\Mvc\ActionRequest;
 use Neos\Flow\Mvc\ActionResponse;
 use Neos\Flow\Mvc\Controller\Arguments;
@@ -41,7 +42,12 @@ trait ErrorHandlingTrait
     {
         $this->response->setContentType('application/json');
 
-        $this->response->setStatusCode(400);
+        $statusCode = 500;
+        if ($throwable instanceof WithHttpStatusInterface) {
+            $statusCode = $throwable->getStatusCode();
+        }
+
+        $this->response->setStatusCode($statusCode);
         $this->response->setContent(json_encode([
             'errors' => [
                 ['message' => $throwable->getMessage(), 'code' => $throwable->getCode()]

@@ -2,6 +2,7 @@
 
 namespace Networkteam\Neos\ContentApi;
 
+use Neos\ContentRepository\Domain\Model\Workspace;
 use Neos\Flow\Core\Bootstrap;
 use Neos\Flow\Package\Package as BasePackage;
 use Neos\Neos\Service\PublishingService;
@@ -22,8 +23,9 @@ class Package extends BasePackage
         // TODO Revalidate documents where asset was used
         // $dispatcher->connect(AssetService::class, 'assetUpdated', ContentCacheFlusher::class, 'registerAssetChange', false);
 
-        // TODO Inform about published nodes
-        $dispatcher->connect(PublishingService::class, 'nodePublished', RevalidateNotifier::class, 'registerNodeChange', false);
+        $dispatcher->connect(PublishingService::class, 'nodePublished', RevalidateNotifier::class, 'nodeWasPublished', false);
+
+        $dispatcher->connect(Workspace::class, 'beforeNodePublishing', RevalidateNotifier::class, 'nodeWillBePublished', false);
 
         // TODO Do we need to inform about discarded nodes?
         // $dispatcher->connect(PublishingService::class, 'nodeDiscarded', RevalidateNotifier::class, 'registerNodeChange', false);
