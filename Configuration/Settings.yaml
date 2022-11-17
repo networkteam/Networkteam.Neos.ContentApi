@@ -1,8 +1,6 @@
 Networkteam:
   Neos:
     ContentApi:
-      revalidateUrl: 'http://localhost:3000/api/revalidate'
-      revalidateToken: 'a-secret-token'
       recursiveReferencePropertyDepth: 1
 
 Neos:
