@@ -87,6 +87,8 @@ class DocumentsController extends ActionController
                     continue;
                 }
                 $nodeAggregateIdentifier = $documentNode->getNodeAggregateIdentifier();
+                $creationDateTime = $documentNode->getCreationDateTime();
+                $lastPublicationDateTime = $documentNode->getLastPublicationDateTime();
                 $availableDimensions = $this->contentDimensionPresetSource->getAllPresets();
                 $dimensions = $documentNode->getContext()->getDimensions();
                 $routePath = $this->uriBuilder->uriFor(
@@ -102,7 +104,9 @@ class DocumentsController extends ActionController
                     'contextPath' => $documentNode->getContextPath(),
                     'dimensions' => $dimensions,
                     'site' => $siteNodeName,
-                    'routePath' => $routePath
+                    'routePath' => $routePath,
+                    'creationDateTime' => $creationDateTime,
+                    'lastPublicationDateTime' => $lastPublicationDateTime
                 ];
             }
         }
