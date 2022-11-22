@@ -37,9 +37,16 @@ prototype(Networkteam.Neos.ContentApi:Properties) {
   @class = 'Networkteam\\Neos\\ContentApi\\Fusion\\PropertiesImplementation'
 
   // TODO Do we want to support a more complex type mapping to conversions via Fusion?
-  // Image properties are automatically converted to a URI with a base size
-  imageMaximumWidth = 2560
-  imageMaximumHeight = 2560
+
+  imageRenderer = Networkteam.Neos.Util:ImageUriAndDimensions {
+    asset = ${asset}
+  }
+
+  assetRenderer = Neos.Fusion:DataStructure {
+    src = Neos.Fusion:ResourceUri {
+      resource = ${asset.resource}
+    }
+  }
 }
 
 prototype(Networkteam.Neos.ContentApi:DefaultDocument) < prototype(Neos.Fusion:DataStructure) {

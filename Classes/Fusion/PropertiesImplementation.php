@@ -77,34 +77,19 @@ class PropertiesImplementation extends AbstractFusionObject
 
     protected function convertPropertyValue(mixed $propertyValue, Int $depth): mixed
     {
-        // Extract asset URI and metadata
+        // Return asset metadata combined with additional data from imageRenderer/assetRenderer
         if ($propertyValue instanceof Asset) {
             $assetData = [];
-
-            if ($propertyValue instanceof Image || $propertyValue instanceof ImageVariant) {
-                $thumbnailConfiguration = new ThumbnailConfiguration(
-                    null,
-                    $this->fusionValue('imageMaximumWidth'),
-                    null,
-                    $this->fusionValue('imageMaximumHeight'),
-                    false,
-                    false,
-                );
-
-                $request = $this->getRuntime()->getControllerContext()->getRequest();
-                $thumbnailData = $this->assetService->getThumbnailUriAndSizeForAsset($propertyValue, $thumbnailConfiguration, $request);
-
-                $assetData['width'] = $thumbnailData['width'];
-                $assetData['height'] = $thumbnailData['height'];
-                $assetData['src'] = $thumbnailData['src'];
-            } else {
-                $resource = $propertyValue->getResource();
-                $assetData['src'] = $this->resourceManager->getPublicPersistentResourceUri($resource);
-            }
 
             $assetData['title'] = $propertyValue->getTitle();
             $assetData['caption'] = $propertyValue->getCaption();
             $assetData['copyrightNotice'] = $propertyValue->getCopyrightNotice();
+
+            $fusionPath = $propertyValue instanceof Image || $propertyValue instanceof ImageVariant ? 'imageRenderer' : 'assetRenderer';
+
+            $this->runtime->pushContext('asset', $propertyValue);
+            $assetData = array_merge($assetData, $this->runtime->evaluate($this->path . '/' . $fusionPath, $this));
+            $this->runtime->popContext();
 
             return $assetData;
         }
