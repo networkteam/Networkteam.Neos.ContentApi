@@ -64,6 +64,20 @@ class DocumentsController extends ActionController
     protected $siteRepository;
 
     /**
+     * @var array
+     */
+    protected $settings = [];
+
+    /**
+     * @param array $settings
+     * @return void
+     */
+    public function injectSettings(array $settings)
+    {
+        $this->settings = $settings;
+    }
+
+    /**
      * List all document nodes
      *
      * @param string $workspaceName Workspace name for node context (defaults to live)
@@ -78,12 +92,13 @@ class DocumentsController extends ActionController
         // TODO Check that public access is only granted to live workspace (or content api is completely restricted by API key)
 
         $documents = [];
+        $filter = $this->settings['documentsFilter'] ?? [];
 
         $site = $this->getActiveSite();
         $siteNodeName = $site->getNodeName();
         foreach ($this->nodeEnumerator->siteNodeInContexts($site, $workspaceName) as $siteNode) {
             foreach ($this->nodeEnumerator->recurseDocumentChildNodes($siteNode) as $documentNode) {
-                if ($documentNode->getNodeType()->isOfType('Neos.Neos:Shortcut')) {
+                if (in_array($documentNode->getNodeType()->getName(), $filter)) {
                     continue;
                 }
                 $nodeAggregateIdentifier = $documentNode->getNodeAggregateIdentifier();
