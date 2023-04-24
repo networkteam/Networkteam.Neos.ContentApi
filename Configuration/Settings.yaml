@@ -2,6 +2,9 @@ Networkteam:
   Neos:
     ContentApi:
       recursiveReferencePropertyDepth: 1
+      documentList:
+        ignoredNodeTypes:
+          - 'Neos.Neos:Shortcut'
 
 Neos:
   Flow:

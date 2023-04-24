@@ -59,5 +59,4 @@ class SitesController extends ActionController
             'site' => $siteProperties,
         ]);
     }
-
 }

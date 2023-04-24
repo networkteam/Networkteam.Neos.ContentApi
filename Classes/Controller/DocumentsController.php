@@ -3,6 +3,7 @@
 namespace Networkteam\Neos\ContentApi\Controller;
 
 use Neos\ContentRepository\Domain\Model\NodeInterface;
+use Neos\ContentRepository\Domain\Model\NodeType;
 use Neos\ContentRepository\Domain\Utility\NodePaths;
 use Neos\ContentRepository\Exception\NodeException;
 use Neos\Flow\Annotations as Flow;
@@ -11,11 +12,9 @@ use Neos\Flow\Mvc\Controller\ActionController;
 use Neos\Flow\Mvc\Routing\Dto\RouteParameters;
 use Neos\Flow\Mvc\Routing\Exception\MissingActionNameException;
 use Neos\Flow\Mvc\View\JsonView;
-use Neos\Flow\Security\Context;
 use Neos\Neos\Domain\Repository\DomainRepository;
 use Neos\Neos\Domain\Repository\SiteRepository;
 use Neos\Neos\Domain\Service\ContentContextFactory;
-use Neos\Neos\Domain\Service\UserService;
 use Neos\Neos\Domain\Service\ContentDimensionPresetSourceInterface;
 use Neos\Neos\Routing\FrontendNodeRoutePartHandler;
 use Neos\Neos\View\FusionView;
@@ -64,6 +63,12 @@ class DocumentsController extends ActionController
     protected $siteRepository;
 
     /**
+     * @Flow\InjectConfiguration(path="documentList.ignoredNodeTypes")
+     * @var array
+     */
+    protected $ignoredNodeTypes = [];
+
+    /**
      * List all document nodes
      *
      * @param string $workspaceName Workspace name for node context (defaults to live)
@@ -78,14 +83,17 @@ class DocumentsController extends ActionController
         // TODO Check that public access is only granted to live workspace (or content api is completely restricted by API key)
 
         $documents = [];
+        $availableDimensions = [];
 
         $site = $this->getActiveSite();
         $siteNodeName = $site->getNodeName();
         foreach ($this->nodeEnumerator->siteNodeInContexts($site, $workspaceName) as $siteNode) {
             foreach ($this->nodeEnumerator->recurseDocumentChildNodes($siteNode) as $documentNode) {
-                if ($documentNode->getNodeType()->isOfType('Neos.Neos:Shortcut')) {
+                $nodeType = $documentNode->getNodeType();
+                if ($this->isIgnoredNodeType($nodeType)) {
                     continue;
                 }
+
                 $nodeAggregateIdentifier = $documentNode->getNodeAggregateIdentifier();
                 $creationDateTime = $documentNode->getCreationDateTime();
                 $lastPublicationDateTime = $documentNode->getLastPublicationDateTime();
@@ -230,4 +238,26 @@ class DocumentsController extends ActionController
         return $contextProperties;
     }
 
+    /**
+     * @return array
+     * @throws \Networkteam\Neos\ContentApi\Exception
+     */
+    private function getIgnoredNodeTypes(): array
+    {
+        $ignoredNodeTypes = $this->ignoredNodeTypes ?? [];
+        if (!is_array($ignoredNodeTypes)) {
+            throw new Exception('The "ignoredNodeTypes" setting must be an array of node type names', 1669719500);
+        }
+        return $ignoredNodeTypes;
+    }
+
+    private function isIgnoredNodeType(NodeType $nodeType): bool
+    {
+        foreach ($this->getIgnoredNodeTypes() as $ignoredNodeType) {
+            if ($nodeType->isOfType($ignoredNodeType)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
