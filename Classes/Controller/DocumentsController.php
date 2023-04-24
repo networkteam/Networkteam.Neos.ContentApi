@@ -3,6 +3,7 @@
 namespace Networkteam\Neos\ContentApi\Controller;
 
 use Neos\ContentRepository\Domain\Model\NodeInterface;
+use Neos\ContentRepository\Domain\Model\NodeType;
 use Neos\ContentRepository\Domain\Utility\NodePaths;
 use Neos\ContentRepository\Exception\NodeException;
 use Neos\Flow\Annotations as Flow;
@@ -82,17 +83,15 @@ class DocumentsController extends ActionController
         // TODO Check that public access is only granted to live workspace (or content api is completely restricted by API key)
 
         $documents = [];
+        $availableDimensions = [];
 
         $site = $this->getActiveSite();
         $siteNodeName = $site->getNodeName();
         foreach ($this->nodeEnumerator->siteNodeInContexts($site, $workspaceName) as $siteNode) {
             foreach ($this->nodeEnumerator->recurseDocumentChildNodes($siteNode) as $documentNode) {
                 $nodeType = $documentNode->getNodeType();
-
-                foreach ($this->getIgnoredNodeTypes() as $ignoredNodeType) {
-                    if ($nodeType->isOfType($ignoredNodeType)) {
-                        continue 2;
-                    }
+                if ($this->isIgnoredNodeType($nodeType)) {
+                    continue;
                 }
 
                 $nodeAggregateIdentifier = $documentNode->getNodeAggregateIdentifier();
@@ -250,5 +249,15 @@ class DocumentsController extends ActionController
             throw new Exception('The "ignoredNodeTypes" setting must be an array of node type names', 1669719500);
         }
         return $ignoredNodeTypes;
+    }
+
+    private function isIgnoredNodeType(NodeType $nodeType): bool
+    {
+        foreach ($this->getIgnoredNodeTypes() as $ignoredNodeType) {
+            if ($nodeType->isOfType($ignoredNodeType)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
