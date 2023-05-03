@@ -64,6 +64,10 @@ prototype(Networkteam.Neos.ContentApi:DefaultDocument) < prototype(Neos.Fusion:D
       }
     }
 
+    editPreviewMode = Networkteam.Neos.ContentApi:Backend.EditPreviewMode {
+      mode = ${documentNode.context.currentRenderingMode}
+    }
+
     @if {
       inBackend = ${documentNode.context.inBackend}
     }
@@ -151,4 +155,15 @@ prototype(Networkteam.Neos.ContentApi:DimensionItem) < prototype(Neos.Fusion:Dat
     node = ${node}
     @if.hasNode = ${node}
   }
+}
+
+prototype(Networkteam.Neos.ContentApi:Backend.EditPreviewMode) < prototype(Neos.Fusion:DataStructure) {
+  @ignoreProperties = ${['mode']}
+
+  mode = null
+
+  name = ${this.mode.name}
+  isPreview = ${this.mode.preview}
+  isEdit = ${this.mode.edit}
+  options = ${this.mode.options}
 }
