@@ -68,11 +68,19 @@ prototype(Networkteam.Neos.ContentApi:DefaultDocument) < prototype(Neos.Fusion:D
       mode = ${documentNode.context.currentRenderingMode}
     }
 
+    # Return the HTML includes (CSS, JS) needed in the guest frame
+    guestFrameApplication = Neos.Fusion:Renderer {
+      renderPath = "/contentApiPage/head/guestFrameApplication"
+    }
+
     @if {
       inBackend = ${documentNode.context.inBackend}
     }
   }
 }
+
+# We need to declare a path to render only a specfic part of the page
+contentApiPage = Neos.Neos:Page
 
 prototype(Networkteam.Neos.ContentApi:BaseNode) < prototype(Neos.Fusion:DataStructure) {
   identifier = ${node.identifier}
