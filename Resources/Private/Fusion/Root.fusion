@@ -69,8 +69,10 @@ prototype(Networkteam.Neos.ContentApi:DefaultDocument) < prototype(Neos.Fusion:D
     }
 
     # Return the HTML includes (CSS, JS) needed in the guest frame
-    guestFrameApplication = Neos.Fusion:Renderer {
-      renderPath = "/contentApiPage/head/guestFrameApplication"
+    guestFrameApplication = Networkteam.Neos.ContentApi:Backend.ParseIncludes {
+      html = Neos.Fusion:Renderer {
+        renderPath = "/contentApiPage/head/guestFrameApplication"
+      }
     }
 
     @if {
@@ -174,4 +176,8 @@ prototype(Networkteam.Neos.ContentApi:Backend.EditPreviewMode) < prototype(Neos.
   isPreview = ${this.mode.preview}
   isEdit = ${this.mode.edit}
   options = ${this.mode.options}
+}
+
+prototype(Networkteam.Neos.ContentApi:Backend.ParseIncludes) {
+  @class = 'Networkteam\\Neos\\ContentApi\\Fusion\\Backend\\ParseIncludesImplementation'
 }
