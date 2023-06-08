@@ -5,7 +5,8 @@
     "name": "networkteam/neos-contentapi",
     "require": {
         "neos/neos": "^7.3 || ^8.0",
-        "networkteam/neos-util": "^8.0"
+        "networkteam/neos-util": "^8.0",
+        "ext-dom": "*"
     },
     "autoload": {
         "psr-4": {
