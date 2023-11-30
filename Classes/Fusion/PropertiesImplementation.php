@@ -94,13 +94,6 @@ class PropertiesImplementation extends AbstractFusionObject
             return $assetData;
         }
 
-        // Recursively map properties inside of arrays
-        if (is_array($propertyValue) && count($propertyValue) > 0) {
-            return array_map(function ($value) use ($depth) {
-                return $this->convertPropertyValue($value, $depth);
-            }, $propertyValue);
-        }
-
         // Get properties of referenced nodes
         if ($propertyValue instanceof NodeInterface) {
             $recursiveReferencePropertyDepth = $this->settings['recursiveReferencePropertyDepth'];
@@ -149,6 +142,22 @@ class PropertiesImplementation extends AbstractFusionObject
             }, $propertyValue);
 
             return $processedContent;
+        }
+
+        // Recursively map properties inside of arrays
+        if (is_array($propertyValue) && count($propertyValue) > 0) {
+            return array_map(function ($value) use ($depth) {
+                return $this->convertPropertyValue($value, $depth);
+            }, $propertyValue);
+        }
+
+        // Recursively map properties of other iterable objects
+        if (is_iterable($propertyValue)) {
+            $result = [];
+            foreach ($propertyValue as $key => $value) {
+                $result[$key] = $this->convertPropertyValue($value, $depth);
+            }
+            return $result;
         }
 
         return $propertyValue;
