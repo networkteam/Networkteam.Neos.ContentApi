@@ -84,6 +84,10 @@ class PropertiesImplementation extends AbstractFusionObject
             $assetData['title'] = $propertyValue->getTitle();
             $assetData['caption'] = $propertyValue->getCaption();
             $assetData['copyrightNotice'] = $propertyValue->getCopyrightNotice();
+            $assetData['byteSize'] = $propertyValue->getResource()->getFileSize(); // bytes
+            $assetData['fileName'] = $propertyValue->getResource()->getFilename();
+            $assetData['fileExtension'] = $propertyValue->getFileExtension();
+            $assetData['lastModified'] = $propertyValue->getLastModified()->format('c');
 
             $fusionPath = $propertyValue instanceof Image || $propertyValue instanceof ImageVariant ? 'imageRenderer' : 'assetRenderer';
 
