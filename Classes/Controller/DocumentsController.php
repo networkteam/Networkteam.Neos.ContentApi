@@ -16,7 +16,6 @@ use Neos\Neos\Domain\Repository\DomainRepository;
 use Neos\Neos\Domain\Repository\SiteRepository;
 use Neos\Neos\Domain\Service\ContentContextFactory;
 use Neos\Neos\Domain\Service\ContentDimensionPresetSourceInterface;
-use Neos\Neos\Routing\FrontendNodeRoutePartHandler;
 use Neos\Neos\View\FusionView;
 use Networkteam\Neos\ContentApi\Domain\Service\NodeEnumerator;
 use Networkteam\Neos\ContentApi\Exception;
@@ -141,7 +140,7 @@ class DocumentsController extends ActionController
         if ($path !== null) {
             $path = ltrim($path, '/');
 
-            $routePart = new FrontendNodeRoutePartHandler();
+            $routePart = $this->objectManager->get(\Neos\Neos\Routing\FrontendNodeRoutePartHandlerInterface::class);
             $routePart->setName('node');
 
             $parameters = $this->request->getHttpRequest()->getAttribute(ServerRequestAttributes::ROUTING_PARAMETERS) ?? RouteParameters::createEmpty();
