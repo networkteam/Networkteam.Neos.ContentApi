@@ -5,6 +5,8 @@ Networkteam:
       documentList:
         ignoredNodeTypes:
           - 'Neos.Neos:Shortcut'
+      # Enable to check redirects of RedirectsHandler (if package is available) if a node is not found
+      checkRedirects: false
 
 Neos:
   Flow:
