@@ -16,9 +16,11 @@ use Neos\Neos\Domain\Repository\DomainRepository;
 use Neos\Neos\Domain\Repository\SiteRepository;
 use Neos\Neos\Domain\Service\ContentContextFactory;
 use Neos\Neos\Domain\Service\ContentDimensionPresetSourceInterface;
+use Neos\Neos\Routing\FrontendNodeRoutePartHandlerInterface;
 use Neos\Neos\View\FusionView;
 use Networkteam\Neos\ContentApi\Domain\Service\NodeEnumerator;
 use Networkteam\Neos\ContentApi\Exception;
+use Networkteam\Neos\ContentApi\Http\DimensionsHelper;
 
 class DocumentsController extends ActionController
 {
@@ -84,9 +86,12 @@ class DocumentsController extends ActionController
         $documents = [];
         $availableDimensions = [];
 
+		// Make sure to check for dimension values from routing parameters to support Flowpack.Neos.DimensionResolver
+		$dimensionValues = DimensionsHelper::getDimensionValuesFromRequest($this->request->getHttpRequest());
+
         $site = $this->getActiveSite();
         $siteNodeName = $site->getNodeName();
-        foreach ($this->nodeEnumerator->siteNodeInContexts($site, $workspaceName) as $siteNode) {
+        foreach ($this->nodeEnumerator->siteNodeInContexts($site, $workspaceName, $dimensionValues) as $siteNode) {
             foreach ($this->nodeEnumerator->recurseDocumentChildNodes($siteNode) as $documentNode) {
                 $nodeType = $documentNode->getNodeType();
                 if ($this->isIgnoredNodeType($nodeType)) {
@@ -140,7 +145,7 @@ class DocumentsController extends ActionController
         if ($path !== null) {
             $path = ltrim($path, '/');
 
-            $routePart = $this->objectManager->get(\Neos\Neos\Routing\FrontendNodeRoutePartHandlerInterface::class);
+            $routePart = $this->objectManager->get(FrontendNodeRoutePartHandlerInterface::class);
             $routePart->setName('node');
 
             $parameters = $this->request->getHttpRequest()->getAttribute(ServerRequestAttributes::ROUTING_PARAMETERS) ?? RouteParameters::createEmpty();

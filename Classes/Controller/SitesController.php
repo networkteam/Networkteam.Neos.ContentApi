@@ -2,11 +2,13 @@
 namespace Networkteam\Neos\ContentApi\Controller;
 
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Http\ServerRequestAttributes;
 use Neos\Flow\Mvc\Controller\ActionController;
 use Neos\Flow\Mvc\View\JsonView;
 use Neos\Neos\Domain\Repository\DomainRepository;
 use Neos\Neos\Domain\Repository\SiteRepository;
 use Networkteam\Neos\ContentApi\Domain\Service\SitePropertiesRenderer;
+use Networkteam\Neos\ContentApi\Http\DimensionsHelper;
 
 class SitesController extends ActionController
 {
@@ -49,10 +51,14 @@ class SitesController extends ActionController
     {
         $site = $this->getActiveSite();
 
-        $siteProperties = $this->sitePropertiesRenderer->renderSiteProperties(
+		// Make sure to check for dimension values from routing parameters to support Flowpack.Neos.DimensionResolver
+		$dimensionValues = DimensionsHelper::getDimensionValuesFromRequest($this->request->getHttpRequest());
+
+		$siteProperties = $this->sitePropertiesRenderer->renderSiteProperties(
             $site,
             $this->controllerContext,
-            $workspaceName
+            $workspaceName,
+			$dimensionValues
         );
 
         $this->view->assign('value', [

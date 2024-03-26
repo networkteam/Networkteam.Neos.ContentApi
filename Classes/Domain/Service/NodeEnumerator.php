@@ -46,16 +46,17 @@ class NodeEnumerator
      *
      * @param Site $site
      * @param string $workspaceName
+	 * @param array $dimensions An explicit set of dimension values to use - no preset iteration will be done if this is specified
      * @return \Generator
      */
-    public function siteNodeInContexts(Site $site, string $workspaceName = 'live')
+    public function siteNodeInContexts(Site $site, string $workspaceName = 'live', array $dimensions = [])
     {
         $presets = $this->dimensionPresetSource->getAllPresets();
-        if ($presets === []) {
+        if ($presets === [] || $dimensions !== []) {
             $contentContext = $this->contextFactory->create(array(
                     'currentSite' => $site,
                     'workspaceName' => $workspaceName,
-                    'dimensions' => [],
+                    'dimensions' => $dimensions,
                     'targetDimensions' => []
                 ));
 
