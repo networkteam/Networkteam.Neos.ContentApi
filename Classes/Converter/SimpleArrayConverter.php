@@ -4,7 +4,6 @@ namespace Networkteam\Neos\ContentApi\Converter;
 
 use Neos\Flow\Property\PropertyMappingConfigurationInterface;
 use Neos\Flow\Property\TypeConverter\AbstractTypeConverter;
-use Neos\Utility\TypeHandling;
 
 class SimpleArrayConverter extends AbstractTypeConverter
 {

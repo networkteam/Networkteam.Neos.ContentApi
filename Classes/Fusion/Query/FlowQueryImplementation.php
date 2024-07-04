@@ -6,6 +6,10 @@ use Neos\Eel\FlowQuery\FlowQuery;
 use Neos\Fusion\Exception as FusionException;
 use Neos\Fusion\FusionObjects\AbstractFusionObject;
 
+/**
+ * Fusion object to evaluate a FlowQuery and return the result as data and meta information.
+ * It supports basic pagination using slice.
+ */
 class FlowQueryImplementation extends AbstractFusionObject
 {
     /**
