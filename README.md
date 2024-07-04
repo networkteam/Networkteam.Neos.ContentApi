@@ -97,6 +97,30 @@ contentApi {
 
 This can be fetched via the `/content-api/site` endpoint for the current site (depends on domain).
 
+### Provide a query for list data
+
+```neosfusion
+contentApi {
+  queries {
+    # Declare a simple query that can be used to fetch articles
+    articles = Networkteam.Neos.ContentApi:Query.FlowQuery {
+      items = ${q(site).find('[instanceof Zebra.Site:Document.Article]')}
+      itemName = 'node'
+      itemRenderer = Networkteam.Neos.ContentApi:BaseNode
+
+      page = ${params.pagination.page || 0}
+      perPage = ${params.pagination.perPage || 3}
+    }
+  }
+}
+```
+
+This query can be fetched via the `/content-api/query/articles` endpoint.
+It uses the predefined `Networkteam.Neos.ContentApi:Query.FlowQuery` to fetch data based on a `FlowQuery` expression.
+
+> Note: For more complex queries, you can create your own query implementation, e.g. based on a search implementation
+> for more efficient queries.
+
 ## API endpoints
 
 ### `/neos/content-api/documents`
@@ -105,7 +129,7 @@ Lists available documents with route path / context path and iterating through d
 
 A different workspace can be selected via `workspaceName` (needs authentication).
 
-> Note: If Flowpack.Neos.DimensionResolver already resolved dimensions e.g. based on the domain, then the dimensions are not iterated.
+> Note: If `Flowpack.Neos.DimensionResolver` already resolved dimensions e.g. based on the domain, then the dimensions are not iterated.
 
 ### `/neos/content-api/document`
 
@@ -118,3 +142,26 @@ Render a single node given by `contextPath`.
 ### `/neos/content-api/site`
 
 Render site properties independent of a single node.
+
+### `/neos/content-api/query/{queryName}`
+
+Fetch data for a predefined query.
+
+**Query Parameters:**
+
+- `params`: Parameters for the query (filter, sorting, pagination, etc.). It is dependent on the Fusion implementation which exact parameters are supported.
+- `workspaceName`: Workspace name for node context (defaults to live)
+- `dimensions`: Dimensions for node context
+
+**Response:**
+
+Query implementations should return a JSON result that contains a list of data and meta information:
+
+```json
+{
+  "data": [{ ... }],
+  "meta": {
+    "total": 0
+  }
+}
+```

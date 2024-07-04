@@ -34,3 +34,12 @@
     '@action': 'current'
   httpMethods: ['GET']
   appendExceedingArguments: true
+-
+  name: 'Fetch data from query'
+  uriPattern: 'neos/content-api/query/{queryName}'
+  defaults:
+    '@package': 'Networkteam.Neos.ContentApi'
+    '@controller': 'Documents'
+    '@action': 'query'
+  httpMethods: ['GET']
+  appendExceedingArguments: true
