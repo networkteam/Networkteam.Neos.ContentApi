@@ -31,6 +31,11 @@ contentApi {
     site = Neos.Fusion:DataStructure
     node = Networkteam.Neos.ContentApi:RecursiveNode
   }
+
+  # Path for rendering defined queries for arbitrary nodes / data
+  queries {
+
+  }
 }
 
 prototype(Networkteam.Neos.ContentApi:Properties) {
@@ -180,4 +185,8 @@ prototype(Networkteam.Neos.ContentApi:Backend.EditPreviewMode) < prototype(Neos.
 
 prototype(Networkteam.Neos.ContentApi:Backend.ParseIncludes) {
   @class = 'Networkteam\\Neos\\ContentApi\\Fusion\\Backend\\ParseIncludesImplementation'
+}
+
+prototype(Networkteam.Neos.ContentApi:Query.FlowQuery) {
+  @class = 'Networkteam\\Neos\\ContentApi\\Fusion\\Query\\FlowQueryImplementation'
 }
