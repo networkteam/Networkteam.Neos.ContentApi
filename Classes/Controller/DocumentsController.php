@@ -383,7 +383,9 @@ class DocumentsController extends ActionController
         }
 
         return [
-            'targetPath' => '/' . ltrim($redirect->getTargetUriPath(), '/'),
+			'targetPath' => parse_url($redirect->getTargetUriPath(), PHP_URL_SCHEME) === null ?
+                '/' . ltrim($redirect->getTargetUriPath(), '/')
+                : $redirect->getTargetUriPath(),
             'statusCode' => $redirect->getStatusCode(),
         ];
     }
