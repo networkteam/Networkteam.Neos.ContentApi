@@ -108,27 +108,30 @@ class PropertiesImplementation extends AbstractFusionObject
         // Get properties of referenced nodes
         if ($propertyValue instanceof NodeInterface) {
             $recursiveReferencePropertyDepth = $this->settings['recursiveReferencePropertyDepth'];
+            $referencedNode = $propertyValue;
 
             if (is_int($recursiveReferencePropertyDepth) && $depth < $recursiveReferencePropertyDepth) {
-                $mappedProperties = $this->mapProperties($propertyValue, $depth + 1);
+                $mappedProperties = $this->mapProperties($referencedNode, $depth + 1);
 
-                // use Implementation from Neos.Neos:NodeUri
-                $controllerContext = $this->runtime->getControllerContext();
-                $referencedNode = $propertyValue;
+                if ($referencedNode->getNodeType()->isOfType('Neos.Neos:Document')) {
+                    // use Implementation from Neos.Neos:NodeUri
+                    $controllerContext = $this->runtime->getControllerContext();
 
-                try {
-                    $mappedProperties['_linkToReference'] = $this->linkingService->createNodeUri(
-                        $controllerContext,
-                        $referencedNode,
-                        null,
-                        'html'
-                    );
-                } catch (NeosException $exception) {
-                    $this->logger->error(
-                        printf('Link to referenced node could not be created: Node: %s, Exception: %s', $referencedNode, $exception)
-                    );
-                    return '';
+                    try {
+                        $mappedProperties['_linkToReference'] = $this->linkingService->createNodeUri(
+                            $controllerContext,
+                            $referencedNode,
+                            null,
+                            'html'
+                        );
+                    } catch (NeosException $exception) {
+                        $this->logger->error(
+                            printf('Link to referenced node could not be created: Nodeidentifier: %s, Exception: %s', $referencedNode->getContextPath(), $exception)
+                        );
+                        return '';
+                    }
                 }
+
                 return $mappedProperties;
             }
 
