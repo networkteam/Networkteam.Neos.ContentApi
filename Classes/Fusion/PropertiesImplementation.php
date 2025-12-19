@@ -118,7 +118,7 @@ class PropertiesImplementation extends AbstractFusionObject
                     $controllerContext = $this->runtime->getControllerContext();
 
                     try {
-                        $mappedProperties['_linkToReference'] = $this->linkingService->createNodeUri(
+                        $mappedProperties['_nodeUri'] = $this->linkingService->createNodeUri(
                             $controllerContext,
                             $referencedNode,
                             null,
