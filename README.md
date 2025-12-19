@@ -155,13 +155,13 @@ Fetch data for a predefined query.
 
 **Response:**
 
-Query implementations should return a JSON result that contains a list of data and meta information:
+Query implementations should return a JSON result that contains a list of data and optional meta information:
 
 ```json
 {
   "data": [{ ... }],
   "meta": {
-    "total": 0
+    "total": 1
   }
 }
 ```
