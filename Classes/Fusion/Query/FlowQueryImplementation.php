@@ -26,17 +26,17 @@ class FlowQueryImplementation extends AbstractFusionObject
 
     protected function getItemName(): ?string
     {
-        return $this->fusionValue('itemName');
+        return $this->fusionValue('itemName') ?? 'item';
     }
 
     protected function getItemKey(): ?string
     {
-        return $this->fusionValue('itemKey');
+        return $this->fusionValue('itemKey') ?? 'itemKey';
     }
 
     protected function getIterationName(): ?string
     {
-        return $this->fusionValue('iterationName');
+        return $this->fusionValue('iterationName') ?? 'iterator';
     }
 
     protected function getPage(): ?int

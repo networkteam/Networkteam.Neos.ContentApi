@@ -304,9 +304,6 @@ class DocumentsController extends ActionController
         if (!isset($result['data'])) {
             throw new Exception('Query result must contain a "data" key', 1715173500);
         }
-        if (!isset($result['meta'])) {
-            throw new Exception('Query result must contain a "meta" key', 1715173501);
-        }
 
         $this->view->assign('value', $result);
     }
