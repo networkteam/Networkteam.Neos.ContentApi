@@ -126,7 +126,7 @@ class PropertiesImplementation extends AbstractFusionObject
                         );
                     } catch (NeosException $exception) {
                         $this->logger->error(
-                            printf('Link to referenced node could not be created: Nodeidentifier: %s, Exception: %s', $referencedNode->getContextPath(), $exception)
+                            printf('Link to referenced node could not be created: Node ContextPath: %s, Exception: %s', $referencedNode->getContextPath(), $exception)
                         );
                         return '';
                     }
