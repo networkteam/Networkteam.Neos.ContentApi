@@ -6,6 +6,7 @@ use Neos\Flow\Annotations as Flow;
 use Neos\Fusion\Exception as FusionException;
 use Neos\Fusion\FusionObjects\AbstractFusionObject;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
+use Neos\Neos\Exception as NeosException;
 use Neos\Neos\Service\LinkingService;
 use Neos\Media\Domain\Model\Asset;
 use Neos\Media\Domain\Model\Image;
@@ -13,6 +14,7 @@ use Neos\Media\Domain\Model\ImageVariant;
 use Neos\Media\Domain\Model\ThumbnailConfiguration;
 use Neos\Media\Domain\Service\AssetService;
 use Neos\Flow\ResourceManagement\ResourceManager;
+use Psr\Log\LoggerInterface;
 
 class PropertiesImplementation extends AbstractFusionObject
 {
@@ -35,6 +37,11 @@ class PropertiesImplementation extends AbstractFusionObject
      * @var LinkingService
      */
     protected $linkingService;
+
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
 
     /**
      * @var array
@@ -101,9 +108,31 @@ class PropertiesImplementation extends AbstractFusionObject
         // Get properties of referenced nodes
         if ($propertyValue instanceof NodeInterface) {
             $recursiveReferencePropertyDepth = $this->settings['recursiveReferencePropertyDepth'];
+            $referencedNode = $propertyValue;
 
             if (is_int($recursiveReferencePropertyDepth) && $depth < $recursiveReferencePropertyDepth) {
-                return $this->mapProperties($propertyValue, $depth + 1);
+                $mappedProperties = $this->mapProperties($referencedNode, $depth + 1);
+
+                if ($referencedNode->getNodeType()->isOfType('Neos.Neos:Document')) {
+                    // use Implementation from Neos.Neos:NodeUri
+                    $controllerContext = $this->runtime->getControllerContext();
+
+                    try {
+                        $mappedProperties['_nodeUri'] = $this->linkingService->createNodeUri(
+                            $controllerContext,
+                            $referencedNode,
+                            null,
+                            'html'
+                        );
+                    } catch (NeosException $exception) {
+                        $this->logger->error(
+                            printf('Link to referenced node could not be created: Node ContextPath: %s, Exception: %s', $referencedNode->getContextPath(), $exception)
+                        );
+                        return '';
+                    }
+                }
+
+                return $mappedProperties;
             }
 
             return null;
