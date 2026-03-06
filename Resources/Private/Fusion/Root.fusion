@@ -1,10 +1,16 @@
+// TODO 9.0 migration: Line 79: You very likely need to rewrite "VARIABLE.context.currentRenderingMode..." to "renderingMode...". We did not auto-apply this migration because we cannot be sure whether the variable is a Node.
+// TODO 9.0 migration: Line 137: You very likely need to rewrite "VARIABLE.label" to "Neos.Node.label(VARIABLE)". We did not auto-apply this migration because we cannot be sure whether the variable is a Node.
+// TODO 9.0 migration: Line 171: You very likely need to rewrite "VARIABLE.label" to "Neos.Node.label(VARIABLE)". We did not auto-apply this migration because we cannot be sure whether the variable is a Node.
+// TODO Neos.Neos-20251005080230 Line 135: You very likely need to rewrite "VARIABLE.label" to "Neos.Node.label(VARIABLE)". We did not auto-apply this migration because we cannot be sure whether the variable is a Node.
+// TODO Neos.Neos-20251005080230 Line 169: You very likely need to rewrite "VARIABLE.label" to "Neos.Node.label(VARIABLE)". We did not auto-apply this migration because we cannot be sure whether the variable is a Node.
+// TODO Neos.Neos-20251005080230 Line 76: You very likely need to rewrite "VARIABLE.context.currentRenderingMode..." to "renderingMode...". We did not auto-apply this migration because we cannot be sure whether the variable is a Node.
 # Content API
 contentApi {
   # Path for rendering site properties (site will be in context)
   site = Neos.Fusion:DataStructure {
     meta = Neos.Fusion:DataStructure {
-      nodeType = ${site.nodeType.name}
-      nodeName = ${site.nodeName}
+      nodeType = ${site.nodeTypeName}
+      nodeName = ${site.name}
       title = ${q(site).property('title')}
     }
     content = Neos.Fusion:DataStructure
@@ -15,9 +21,9 @@ contentApi {
     documentType {
       # Check if a prototype for a document node with .Api suffix is declared
       condition = Neos.Fusion:CanRender {
-        type = ${documentNode.nodeType.name + '.Api'}
+        type = ${documentNode.nodeTypeName + '.Api'}
       }
-      type = ${documentNode.nodeType.name + '.Api'}
+      type = ${documentNode.nodeTypeName + '.Api'}
     }
 
     default {
@@ -81,7 +87,7 @@ prototype(Networkteam.Neos.ContentApi:DefaultDocument) < prototype(Neos.Fusion:D
     }
 
     @if {
-      inBackend = ${documentNode.context.inBackend}
+      inBackend = ${renderingMode.isEdit}
     }
   }
 }
@@ -90,9 +96,9 @@ prototype(Networkteam.Neos.ContentApi:DefaultDocument) < prototype(Neos.Fusion:D
 contentApiPage = Neos.Neos:Page
 
 prototype(Networkteam.Neos.ContentApi:BaseNode) < prototype(Neos.Fusion:DataStructure) {
-  identifier = ${node.identifier}
-  nodeType = ${node.nodeType.name}
-  contextPath = ${node.contextPath}
+  identifier = ${node.aggregateId}
+  nodeType = ${node.nodeTypeName}
+  contextPath = ${Neos.Node.serializedNodeAddress(node)}
   nodeName = ${node.name}
 
   properties = Networkteam.Neos.ContentApi:Properties
@@ -100,7 +106,7 @@ prototype(Networkteam.Neos.ContentApi:BaseNode) < prototype(Neos.Fusion:DataStru
   backend = Neos.Fusion:DataStructure {
     serializedNode = ${Neos.Ui.NodeInfo.renderNodeWithPropertiesAndChildrenInformation(node, controllerContext)}
     @if {
-      inBackend = ${documentNode.context.inBackend}
+      inBackend = ${renderingMode.isEdit}
     }
   }
 }
@@ -133,9 +139,9 @@ prototype(Networkteam.Neos.ContentApi:MenuItem) < prototype(Neos.Fusion:DataStru
   menuLevel = ${item.menuLevel}
 
   node = Neos.Fusion:DataStructure {
-    identifier = ${node.identifier}
-    nodeType = ${node.nodeType.name}
-    contextPath = ${node.contextPath}
+    identifier = ${node.aggregateId}
+    nodeType = ${node.nodeTypeName}
+    contextPath = ${Neos.Node.serializedNodeAddress(node)}
     routePath = Neos.Neos:NodeUri {
       node = ${node}
     }
