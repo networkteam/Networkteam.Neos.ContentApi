@@ -1,8 +1,13 @@
 <?php
 namespace Networkteam\Neos\ContentApi\Domain\Service;
 
-use Neos\ContentRepository\Domain\Model\NodeInterface;
+// TODO 9.0
+use Neos\Rector\ContentRepository90\Legacy\LegacyContextStub;
 use Neos\Flow\Annotations as Flow;
+use Neos\ContentRepository\Core\Projection\ContentGraph\Node;
+use Neos\Neos\Domain\Service\ContentDimensionPresetSourceInterface;
+use Neos\ContentRepository\Core\Projection\ContentGraph\Filter\FindChildNodesFilter;
+use Neos\ContentRepositoryRegistry\ContentRepositoryRegistry;
 use Neos\Neos\Domain\Model\Site;
 
 /**
@@ -13,7 +18,7 @@ class NodeEnumerator
 
     /**
      * @Flow\Inject
-     * @var \Neos\Neos\Domain\Service\ContentDimensionPresetSourceInterface
+     * @var ContentDimensionPresetSourceInterface
      */
     protected $dimensionPresetSource;
 
@@ -23,11 +28,8 @@ class NodeEnumerator
      */
     protected $siteRepository;
 
-    /**
-     * @Flow\Inject
-     * @var \Neos\ContentRepository\Domain\Service\ContextFactoryInterface
-     */
-    protected $contextFactory;
+    #[Flow\Inject]
+    protected ContentRepositoryRegistry $contentRepositoryRegistry;
 
     /**
      * @return Site[]
@@ -53,7 +55,7 @@ class NodeEnumerator
     {
         $presets = $this->dimensionPresetSource->getAllPresets();
         if ($presets === [] || $dimensions !== []) {
-            $contentContext = $this->contextFactory->create(array(
+            $contentContext = new LegacyContextStub(array(
                     'currentSite' => $site,
                     'workspaceName' => $workspaceName,
                     'dimensions' => $dimensions,
@@ -66,7 +68,7 @@ class NodeEnumerator
                 foreach ($presetsConfiguration['presets'] as $presetIdentifier => $presetConfiguration) {
                     $dimensions = [$dimensionIdentifier => $presetConfiguration['values']];
 
-                    $contentContext = $this->contextFactory->create(array(
+                    $contentContext = new LegacyContextStub(array(
                         'currentSite' => $site,
                         'workspaceName' => $workspaceName,
                         'dimensions' => $dimensions,
@@ -75,7 +77,7 @@ class NodeEnumerator
 
                     $siteNode = $contentContext->getNode('/sites/' . $site->getNodeName());
 
-                    if ($siteNode instanceof NodeInterface) {
+                    if ($siteNode instanceof Node) {
                         yield $siteNode;
                     }
                 }
@@ -86,14 +88,17 @@ class NodeEnumerator
     /**
      * Iterate over the given node and all document child nodes recursively
      *
-     * @param NodeInterface $node
-     * @return NodeInterface[]
+     * @param Node $node
+     * @return Node[]
      */
-    public function recurseDocumentChildNodes(NodeInterface $node)
+    public function recurseDocumentChildNodes(Node $node)
     {
         yield $node;
+        $subgraph = $this->contentRepositoryRegistry->subgraphForNode($node);
+        // TODO 9.0 migration: Try to remove the iterator_to_array($nodes) call.
 
-        foreach ($node->getChildNodes('Neos.Neos:Document') as $node) {
+
+        foreach (iterator_to_array($subgraph->findChildNodes($node->aggregateId, FindChildNodesFilter::create(nodeTypeConstraints: 'Neos.Neos:Document'))) as $node) {
             foreach ($this->recurseDocumentChildNodes($node) as $childNode) {
                 yield $childNode;
             }
