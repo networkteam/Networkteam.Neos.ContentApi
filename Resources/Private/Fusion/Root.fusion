@@ -1,9 +1,5 @@
-// TODO 9.0 migration: Line 79: You very likely need to rewrite "VARIABLE.context.currentRenderingMode..." to "renderingMode...". We did not auto-apply this migration because we cannot be sure whether the variable is a Node.
-// TODO 9.0 migration: Line 137: You very likely need to rewrite "VARIABLE.label" to "Neos.Node.label(VARIABLE)". We did not auto-apply this migration because we cannot be sure whether the variable is a Node.
-// TODO 9.0 migration: Line 171: You very likely need to rewrite "VARIABLE.label" to "Neos.Node.label(VARIABLE)". We did not auto-apply this migration because we cannot be sure whether the variable is a Node.
-// TODO Neos.Neos-20251005080230 Line 135: You very likely need to rewrite "VARIABLE.label" to "Neos.Node.label(VARIABLE)". We did not auto-apply this migration because we cannot be sure whether the variable is a Node.
-// TODO Neos.Neos-20251005080230 Line 169: You very likely need to rewrite "VARIABLE.label" to "Neos.Node.label(VARIABLE)". We did not auto-apply this migration because we cannot be sure whether the variable is a Node.
-// TODO Neos.Neos-20251005080230 Line 76: You very likely need to rewrite "VARIABLE.context.currentRenderingMode..." to "renderingMode...". We did not auto-apply this migration because we cannot be sure whether the variable is a Node.
+// TODO 9.0 migration: Line 134: You very likely need to rewrite "VARIABLE.label" to "Neos.Node.label(VARIABLE)". We did not auto-apply this migration because we cannot be sure whether the variable is a Node.
+// TODO 9.0 migration: Line 168: You very likely need to rewrite "VARIABLE.label" to "Neos.Node.label(VARIABLE)". We did not auto-apply this migration because we cannot be sure whether the variable is a Node.
 # Content API
 contentApi {
   # Path for rendering site properties (site will be in context)
@@ -76,7 +72,7 @@ prototype(Networkteam.Neos.ContentApi:DefaultDocument) < prototype(Neos.Fusion:D
     }
 
     editPreviewMode = Networkteam.Neos.ContentApi:Backend.EditPreviewMode {
-      mode = ${documentNode.context.currentRenderingMode}
+      mode = ${renderingMode}
     }
 
     # Return the HTML includes (CSS, JS) needed in the guest frame
