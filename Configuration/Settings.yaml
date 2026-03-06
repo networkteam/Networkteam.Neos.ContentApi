@@ -15,11 +15,6 @@ Neos:
         'Networkteam.Neos.ContentApi':
           position: 'before Neos.Neos'
 
-        'Neos.Neos':
-          variables:
-            # Do not use an URI suffix
-            'defaultUriSuffix': ''
-
     security:
       authentication:
         providers:
@@ -29,12 +24,13 @@ Neos:
                 pattern: 'ControllerObjectName'
                 patternOptions:
                   controllerObjectNamePattern: 'Networkteam\Neos\ContentApi\Controller\.*'
-
   Neos:
     fusion:
       autoInclude:
-        'Networkteam.Neos.ContentApi': true
-
+        Networkteam.Neos.ContentApi: true
+    sitePresets:
+      default:
+        uriPathSuffix: ''
   Fusion:
     defaultContext:
       Neos.Ui.NodeInfo: Neos\Neos\Ui\Fusion\Helper\NodeInfoHelper
