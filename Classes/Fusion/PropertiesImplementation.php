@@ -2,18 +2,25 @@
 
 namespace Networkteam\Neos\ContentApi\Fusion;
 
+use GuzzleHttp\Psr7\ServerRequest;
+use Neos\ContentRepository\Core\SharedModel\Node\NodeAddress;
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Mvc\ActionRequest;
+use Neos\Flow\Mvc\Exception\NoMatchingRouteException;
 use Neos\Fusion\Exception as FusionException;
 use Neos\Fusion\FusionObjects\AbstractFusionObject;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\Neos\Exception as NeosException;
-use Neos\Neos\Service\LinkingService;
+use Neos\ContentRepository\Core\Projection\ContentGraph\Node;
+use Neos\ContentRepositoryRegistry\ContentRepositoryRegistry;
+use Neos\Neos\FrontendRouting\NodeUriBuilderFactory;
 use Neos\Media\Domain\Model\Asset;
 use Neos\Media\Domain\Model\Image;
 use Neos\Media\Domain\Model\ImageVariant;
 use Neos\Media\Domain\Model\ThumbnailConfiguration;
 use Neos\Media\Domain\Service\AssetService;
 use Neos\Flow\ResourceManagement\ResourceManager;
+use Neos\Neos\FrontendRouting\Options;
 use Psr\Log\LoggerInterface;
 
 class PropertiesImplementation extends AbstractFusionObject
@@ -34,9 +41,9 @@ class PropertiesImplementation extends AbstractFusionObject
 
     /**
      * @Flow\Inject
-     * @var LinkingService
+     * @var NodeUriBuilderFactory
      */
-    protected $linkingService;
+    protected $nodeUriBuilderFactory;
 
     /**
      * @var LoggerInterface
@@ -47,6 +54,8 @@ class PropertiesImplementation extends AbstractFusionObject
      * @var array
      */
     protected $settings = [];
+    #[Flow\Inject]
+    protected ContentRepositoryRegistry $contentRepositoryRegistry;
 
     /**
      * @param array $settings
@@ -66,16 +75,16 @@ class PropertiesImplementation extends AbstractFusionObject
     public function evaluate()
     {
         $context = $this->getRuntime()->getCurrentContext();
-        /** @var \Neos\ContentRepository\Domain\Model\NodeInterface $node */
+        /** @var Node $node */
         $node = $context['node'];
 
         return $this->mapProperties($node);
     }
 
-    protected function mapProperties(NodeInterface $node, Int $depth = 0): array
+    protected function mapProperties(Node $node, Int $depth = 0): array
     {
         $result = [];
-        foreach ($node->getProperties() as $propertyName => $propertyValue) {
+        foreach ($node->properties as $propertyName => $propertyValue) {
             $result[$propertyName] = $this->convertPropertyValue($propertyValue, $depth);
         }
 
@@ -106,27 +115,29 @@ class PropertiesImplementation extends AbstractFusionObject
         }
 
         // Get properties of referenced nodes
-        if ($propertyValue instanceof NodeInterface) {
+        if ($propertyValue instanceof Node) {
             $recursiveReferencePropertyDepth = $this->settings['recursiveReferencePropertyDepth'];
             $referencedNode = $propertyValue;
 
             if (is_int($recursiveReferencePropertyDepth) && $depth < $recursiveReferencePropertyDepth) {
                 $mappedProperties = $this->mapProperties($referencedNode, $depth + 1);
+                $contentRepository = $this->contentRepositoryRegistry->get($referencedNode->contentRepositoryId);
 
-                if ($referencedNode->getNodeType()->isOfType('Neos.Neos:Document')) {
-                    // use Implementation from Neos.Neos:NodeUri
-                    $controllerContext = $this->runtime->getControllerContext();
+                if ($contentRepository->getNodeTypeManager()->getNodeType($referencedNode->nodeTypeName)->isOfType('Neos.Neos:Document')) {
+                    // use Implementation from NodeUriImplementation
+
+                    $possibleRequest = $this->runtime->fusionGlobals->get('request');
+                    // Since the properties are only called in an Request we can be sure an Action Request exists.
+                    $nodeUriBuilder = $this->nodeUriBuilderFactory->forActionRequest($possibleRequest);
+
+                    $nodeAddress = NodeAddress::fromNode($referencedNode);
+                    $options = Options::createEmpty();
 
                     try {
-                        $mappedProperties['_nodeUri'] = $this->linkingService->createNodeUri(
-                            $controllerContext,
-                            $referencedNode,
-                            null,
-                            'html'
-                        );
-                    } catch (NeosException $exception) {
+                        $mappedProperties['_nodeUri'] = $nodeUriBuilder->uriFor($nodeAddress, $options);
+                    } catch (NoMatchingRouteException $exception) {
                         $this->logger->error(
-                            printf('Link to referenced node could not be created: Node ContextPath: %s, Exception: %s', $referencedNode->getContextPath(), $exception)
+                            printf('Link to referenced node could not be created: Node ContextPath: %s, Exception: %s', NodeAddress::fromNode($referencedNode)->toJson(), $exception)
                         );
                         return '';
                     }
@@ -138,6 +149,7 @@ class PropertiesImplementation extends AbstractFusionObject
             return null;
         }
 
+        // TODO 9.0: Remove LinkingService - use nodeUriBuilder?
         // Convert node references set by LinkEditor to URIs
         if (is_string($propertyValue) && preg_match('/^node:\/\/[a-z0-9-]+$/', $propertyValue)) {
             $linkingService = $this->linkingService;
@@ -147,6 +159,7 @@ class PropertiesImplementation extends AbstractFusionObject
             return $resolvedUri;
         }
 
+        // TODO 9.0: Remove LinkingService - use nodeUriBuilder?
         // Convert asset references set by LinkEditor to URIs
         if (is_string($propertyValue) && preg_match('/^asset:\/\/[a-z0-9-]+$/', $propertyValue)) {
             $linkingService = $this->linkingService;
@@ -154,6 +167,7 @@ class PropertiesImplementation extends AbstractFusionObject
             return $resolvedUri;
         }
 
+        // TODO 9.0: Remove LinkingService - use nodeUriBuilder?
         // Convert node and asset references inside other strings to URIs
         if (is_string($propertyValue)) {
             $linkingService = $this->linkingService;
