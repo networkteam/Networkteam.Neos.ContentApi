@@ -114,6 +114,24 @@ class PropertiesImplementation extends AbstractFusionObject
                 $mappedProperties = $this->mapProperties($referencedNode, $depth + 1);
 
                 if ($referencedNode->getNodeType()->isOfType('Neos.Neos:Document')) {
+                    try {
+                        $mappedProperties['_identifier'] = $referencedNode->getIdentifier();
+                    } catch (\Exception $exception) {
+                        $this->logger->error(
+                            printf('Identifier of referenced node could not be resolved: Node ContextPath: %s, Exception: %s', $referencedNode->getContextPath(), $exception)
+                        );
+                        return '';
+                    }
+
+                    try {
+                        $mappedProperties['_nodeType'] = $referencedNode->getNodeType()->getName();
+                    } catch (\Exception $exception) {
+                        $this->logger->error(
+                            printf('NodeType of referenced node could not be resolved: Node ContextPath: %s, Exception: %s', $referencedNode->getContextPath(), $exception)
+                        );
+                        return '';
+                    }
+
                     // use Implementation from Neos.Neos:NodeUri
                     $controllerContext = $this->runtime->getControllerContext();
 
