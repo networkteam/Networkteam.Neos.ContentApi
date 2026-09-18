@@ -3,10 +3,10 @@
 namespace Networkteam\Neos\ContentApi\Fusion;
 
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Log\Utility\LogEnvironment;
 use Neos\Fusion\Exception as FusionException;
 use Neos\Fusion\FusionObjects\AbstractFusionObject;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
-use Neos\Neos\Exception as NeosException;
 use Neos\Neos\Service\LinkingService;
 use Neos\Media\Domain\Model\Asset;
 use Neos\Media\Domain\Model\Image;
@@ -39,9 +39,10 @@ class PropertiesImplementation extends AbstractFusionObject
     protected $linkingService;
 
     /**
+     * @Flow\Inject
      * @var LoggerInterface
      */
-    private $logger;
+    protected $logger;
 
     /**
      * @var array
@@ -114,27 +115,14 @@ class PropertiesImplementation extends AbstractFusionObject
                 $mappedProperties = $this->mapProperties($referencedNode, $depth + 1);
 
                 if ($referencedNode->getNodeType()->isOfType('Neos.Neos:Document')) {
-                    try {
-                        $mappedProperties['_identifier'] = $referencedNode->getIdentifier();
-                    } catch (\Exception $exception) {
-                        $this->logger->error(
-                            printf('Identifier of referenced node could not be resolved: Node ContextPath: %s, Exception: %s', $referencedNode->getContextPath(), $exception)
-                        );
-                        return '';
-                    }
-
-                    try {
-                        $mappedProperties['_nodeType'] = $referencedNode->getNodeType()->getName();
-                    } catch (\Exception $exception) {
-                        $this->logger->error(
-                            printf('NodeType of referenced node could not be resolved: Node ContextPath: %s, Exception: %s', $referencedNode->getContextPath(), $exception)
-                        );
-                        return '';
-                    }
+                    $mappedProperties['_identifier'] = $referencedNode->getIdentifier();
+                    $mappedProperties['_nodeType'] = $referencedNode->getNodeType()->getName();
 
                     // use Implementation from Neos.Neos:NodeUri
                     $controllerContext = $this->runtime->getControllerContext();
 
+                    // A URI that cannot be resolved (e.g. a site without an active domain) must not break the
+                    // whole response: the reference is still returned, just without _nodeUri.
                     try {
                         $mappedProperties['_nodeUri'] = $this->linkingService->createNodeUri(
                             $controllerContext,
@@ -142,11 +130,15 @@ class PropertiesImplementation extends AbstractFusionObject
                             null,
                             'html'
                         );
-                    } catch (NeosException $exception) {
+                    } catch (\Exception $exception) {
                         $this->logger->error(
-                            printf('Link to referenced node could not be created: Node ContextPath: %s, Exception: %s', $referencedNode->getContextPath(), $exception)
+                            sprintf(
+                                'Link to referenced node could not be created: Node ContextPath: %s, Exception: %s',
+                                $referencedNode->getContextPath(),
+                                $exception->getMessage()
+                            ),
+                            LogEnvironment::fromMethodName(__METHOD__)
                         );
-                        return '';
                     }
                 }
 
